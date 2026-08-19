@@ -184,7 +184,8 @@ class Player {
         this.ultimateCooldownTimer = 0;
         this.jumpsLeft = this.maxJumps || 2;
         this.hasHitEnemies.clear();
-        this.chargeUltimate(0);
+        this.ultimateEnergy = 0;
+        this.chargeUltimate(35); // Start with 35% ultimate charge
     }
 
     update(dt, input, platforms, hazards, levelWidth, levelHeight) {
@@ -194,8 +195,8 @@ class Player {
         if (this.ultimateTimer > 0) this.ultimateTimer -= dt;
         if (this.ultimateCooldownTimer > 0) this.ultimateCooldownTimer -= dt;
 
-        // Check Ultimate Activation (U / Q key or Mobile Button)
-        if (input.ultimateJustPressed && this.ultimateEnergy >= 100 && this.ultimateCooldownTimer <= 0) {
+        // Check Ultimate Activation (U / Q key or Mobile Button or state)
+        if ((input.ultimateJustPressed || input.ultimate) && this.ultimateEnergy >= 100 && this.ultimateCooldownTimer <= 0) {
             input.ultimate = false;
             input.ultimateJustPressed = false;
             if (window.gameEngine) {
@@ -232,7 +233,7 @@ class Player {
             this.attackCombo = (this.attackCombo % 3) + 1;
             window.soundEngine.playAttack();
 
-            this.chargeUltimate(4); // Charge ultimate meter on attack
+            this.chargeUltimate(8); // Generous +8% ultimate charge on swing
 
             if (navigator.vibrate) navigator.vibrate(25);
 

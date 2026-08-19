@@ -287,6 +287,19 @@ class InputController {
                 } else if (actionName === 'dash') {
                     this.state.dashJustPressed = true;
                     this.state.dash = true;
+                } else if (actionName === 'ultimate') {
+                    this.state.ultimateJustPressed = true;
+                    this.state.ultimate = true;
+                    if (window.gameManager && window.gameManager.player) {
+                        if (window.gameManager.player.ultimateEnergy >= 100) {
+                            window.gameManager.player.executeUltimate(window.gameEngine);
+                        } else {
+                            const pct = Math.round(window.gameManager.player.ultimateEnergy);
+                            if (window.gameManager.showToast) {
+                                window.gameManager.showToast(`⚡ مقياس القاضية: ${pct}% (يتطلب 100%)`);
+                            }
+                        }
+                    }
                 } else {
                     this.state[actionName] = true;
                 }
@@ -301,6 +314,9 @@ class InputController {
                     this.state.attack = false;
                 } else if (actionName === 'dash') {
                     this.state.dash = false;
+                } else if (actionName === 'ultimate') {
+                    this.state.ultimate = false;
+                    this.state.ultimateJustPressed = false;
                 } else {
                     this.state[actionName] = false;
                 }

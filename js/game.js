@@ -231,6 +231,7 @@ class GameManager {
             if (hud) hud.classList.remove('hidden');
             if (touchLayer) touchLayer.style.display = 'flex';
         } else {
+            this.state = 'MENU';
             const target = document.getElementById(screenId);
             if (target) target.classList.remove('hidden');
             if (hud) hud.classList.add('hidden');
@@ -243,14 +244,24 @@ class GameManager {
         this.hideAllModals();
         const modal = document.getElementById(modalId);
         if (modal) modal.classList.remove('hidden');
+        const touchLayer = document.getElementById('touch-controls');
+        if (touchLayer) touchLayer.style.display = 'none';
     }
 
     hideAllModals() {
-        const modals = ['modal-pause', 'modal-victory', 'modal-gameover'];
+        const modals = ['modal-pause', 'modal-victory', 'modal-gameover', 'modal-install-app'];
         modals.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
         });
+        if (this.state === 'PLAYING') {
+            const touchLayer = document.getElementById('touch-controls');
+            if (touchLayer) touchLayer.style.display = 'flex';
+        }
+    }
+
+    hideModals() {
+        this.hideAllModals();
     }
 
     updateMenuStats() {
@@ -560,23 +571,40 @@ class GameManager {
 
         // Pause Modal Buttons
         document.getElementById('hud-btn-pause').onclick = () => this.togglePause();
-        document.getElementById('btn-pause-resume').onclick = () => this.togglePause();
-        document.getElementById('btn-pause-restart').onclick = () => { this.hideModals(); this.restartLevel(); };
-        document.getElementById('btn-pause-stages').onclick = () => { this.hideModals(); this.showScreen('screen-stages'); };
-        document.getElementById('btn-pause-menu').onclick = () => { this.hideModals(); this.showScreen('screen-main-menu'); };
+        document.getElementById('btn-pause-resume').onclick = () => this.resumeGame();
+        document.getElementById('btn-pause-restart').onclick = () => { this.hideAllModals(); this.restartLevel(); };
+        document.getElementById('btn-pause-stages').onclick = () => { this.hideAllModals(); this.showScreen('screen-stages'); };
+        document.getElementById('btn-pause-menu').onclick = () => { this.hideAllModals(); this.showScreen('screen-main-menu'); };
 
         // Victory Modal Buttons
-        document.getElementById('btn-victory-retry').onclick = () => { this.hideModals(); this.restartLevel(); };
-        document.getElementById('btn-victory-stages').onclick = () => { this.hideModals(); this.showScreen('screen-stages'); };
+        document.getElementById('btn-victory-retry').onclick = () => { this.hideAllModals(); this.restartLevel(); };
+        document.getElementById('btn-victory-stages').onclick = () => { this.hideAllModals(); this.showScreen('screen-stages'); };
         document.getElementById('btn-victory-next').onclick = () => {
-            this.hideModals();
+            this.hideAllModals();
             this.startLevel(this.currentStageId + 1);
         };
 
         // Game Over Buttons
-        document.getElementById('btn-gameover-retry').onclick = () => { this.hideModals(); this.restartLevel(); };
-        document.getElementById('btn-gameover-stages').onclick = () => { this.hideModals(); this.showScreen('screen-stages'); };
-        document.getElementById('btn-gameover-menu').onclick = () => { this.hideModals(); this.showScreen('screen-main-menu'); };
+        document.getElementById('btn-gameover-retry').onclick = () => { this.hideAllModals(); this.restartLevel(); };
+        document.getElementById('btn-gameover-stages').onclick = () => { this.hideAllModals(); this.showScreen('screen-stages'); };
+        document.getElementById('btn-gameover-menu').onclick = () => { this.hideAllModals(); this.showScreen('screen-main-menu'); };
+
+        // Ultimate Touch Button Direct Click Trigger
+        const ultBtn = document.getElementById('btn-ultimate');
+        if (ultBtn) {
+            ultBtn.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (this.player) {
+                    if (this.player.ultimateEnergy >= 100) {
+                        this.player.executeUltimate(this.engine);
+                    } else {
+                        const pct = Math.round(this.player.ultimateEnergy);
+                        this.showToast(`⚡ مقياس القاضية: ${pct}% (يتطلب 100%)`);
+                    }
+                }
+            };
+        }
 
         // Audio & Fullscreen Toggles
         document.getElementById('btn-toggle-sound').onclick = () => {
