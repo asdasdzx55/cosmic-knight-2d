@@ -99,7 +99,18 @@ class GameManager {
         this.updateHUDCoins();
 
         this.showScreen('NONE'); // Show canvas HUD
-        this.state = 'PLAYING';
+
+        // Check for Story Intro Dialogue
+        if (window.dialogueManager && GAME_DIALOGUES['intro_' + stageId]) {
+            this.state = 'DIALOGUE';
+            window.dialogueManager.startDialogue('intro_' + stageId, () => {
+                this.state = 'PLAYING';
+                const touchLayer = document.getElementById('touch-controls');
+                if (touchLayer) touchLayer.style.display = 'flex';
+            });
+        } else {
+            this.state = 'PLAYING';
+        }
     }
 
     restartLevel() {
@@ -144,6 +155,17 @@ class GameManager {
         this.persistSaveData();
         this.renderStagesGrid();
 
+        // Check for Outro Dialogue before showing victory modal
+        if (window.dialogueManager && GAME_DIALOGUES['outro_' + this.currentStageId]) {
+            window.dialogueManager.startDialogue('outro_' + this.currentStageId, () => {
+                this.showVictoryModal(lvl, nextStageId);
+            });
+        } else {
+            this.showVictoryModal(lvl, nextStageId);
+        }
+    }
+
+    showVictoryModal(lvl, nextStageId) {
         // Update Victory Modal UI
         document.getElementById('victory-stage-title').innerText = this.saveData.lang === 'ar' ? lvl.titleAr : lvl.titleEn;
         document.getElementById('v-time-val').innerText = this.formatTime(this.levelTimer);
@@ -654,6 +676,7 @@ class GameManager {
     }
 
     initUI() {
+        if (window.dialogueManager) window.dialogueManager.init();
         this.showScreen('screen-main-menu');
     }
 

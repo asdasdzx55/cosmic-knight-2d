@@ -441,24 +441,54 @@
                     </button>
                 </div>
             </div>
+        <!-- 9. STORY DIALOGUE OVERLAY (حوارات القصة والزعماء) -->
+        <div id="dialogue-overlay" class="dialogue-overlay hidden">
+            <div class="dialogue-box">
+                <div class="dialogue-header">
+                    <div class="speaker-profile">
+                        <div class="speaker-avatar-frame" id="dialogue-avatar-frame">
+                            <span id="dialogue-avatar-icon" class="speaker-icon">⚔️</span>
+                        </div>
+                        <div class="speaker-info">
+                            <h3 id="dialogue-speaker-name" class="speaker-name">الفارس السماوي (Hero)</h3>
+                            <span id="dialogue-speaker-title" class="speaker-title">حامي الأبعاد الكونية</span>
+                        </div>
+                    </div>
+                    <button id="btn-dialogue-skip" class="dialogue-skip-btn" title="تخطي الحوار (Skip)">
+                        <span>تخطي</span> <i class="fa-solid fa-forward-step"></i>
+                    </button>
+                </div>
+
+                <div class="dialogue-body">
+                    <p id="dialogue-text" class="dialogue-text">...</p>
+                </div>
+
+                <div class="dialogue-footer">
+                    <span class="dialogue-hint"><i class="fa-regular fa-keyboard"></i> اضغط مسافة أو المس الشاشة للمتابعة</span>
+                    <button id="btn-dialogue-next" class="dialogue-next-btn">
+                        <span>التالي</span> <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Scripts with Cache Buster v4.0 -->
-    <script src="js/audio.js?v=4.0"></script>
-    <script src="js/particles.js?v=4.0"></script>
-    <script src="js/levels.js?v=4.0"></script>
-    <script src="js/entities.js?v=4.0"></script>
-    <script src="js/controls.js?v=4.0"></script>
-    <script src="js/engine.js?v=4.0"></script>
-    <script src="js/game.js?v=4.0"></script>
+    <!-- Scripts with Cache Buster v5.0 -->
+    <script src="js/audio.js?v=5.0"></script>
+    <script src="js/particles.js?v=5.0"></script>
+    <script src="js/levels.js?v=5.0"></script>
+    <script src="js/entities.js?v=5.0"></script>
+    <script src="js/controls.js?v=5.0"></script>
+    <script src="js/engine.js?v=5.0"></script>
+    <script src="js/dialogue.js?v=5.0"></script>
+    <script src="js/game.js?v=5.0"></script>
 
     <!-- Service Worker & PWA Install Registration -->
     <script>
         // Register Service Worker for Offline PWA with auto-update
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js?v=4.0')
+                navigator.serviceWorker.register('./sw.js?v=5.0')
                     .then((reg) => {
                         console.log('[PWA] Service Worker registered! Scope:', reg.scope);
                         reg.update();

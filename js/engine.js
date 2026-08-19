@@ -266,10 +266,7 @@ class GameEngine {
         // 4. Checkpoints
         this.drawCheckpoints(renderCamX, renderCamY);
 
-        // 5. Exit Portal
-        this.drawExitPortal(renderCamX, renderCamY);
-
-        // 6. Collectibles
+        // 5. Collectibles
         for (const c of this.collectibles) {
             c.draw(this.ctx, renderCamX, renderCamY);
         }
@@ -514,61 +511,6 @@ class GameEngine {
             this.ctx.lineTo(rx + 10, ry + 30);
             this.ctx.closePath();
             this.ctx.fill();
-            this.ctx.restore();
-        }
-    }
-
-    drawExitPortal(camX, camY) {
-        if (!this.exit) return;
-        const rx = Math.round(this.exit.x - camX);
-        const ry = Math.round(this.exit.y - camY);
-        const time = performance.now() * 0.003;
-
-        const isLocked = this.exit.lockedUntilBossDead && this.enemies.some(e => e.type === 'boss' && !e.isDead);
-
-        this.ctx.save();
-        this.ctx.translate(rx + this.exit.w * 0.5, ry + this.exit.h * 0.5);
-
-        if (isLocked) {
-            // Dormant Locked Portal Frame
-            this.ctx.strokeStyle = '#64748b';
-            this.ctx.lineWidth = 3;
-            this.ctx.strokeRect(-22, -36, 44, 72);
-            this.ctx.fillStyle = 'rgba(255, 46, 99, 0.2)';
-            this.ctx.fillRect(-22, -36, 44, 72);
-
-            this.ctx.fillStyle = '#ff2e63';
-            this.ctx.shadowColor = '#ff2e63';
-            this.ctx.shadowBlur = 10;
-            this.ctx.beginPath();
-            this.ctx.arc(0, -6, 8, 0, Math.PI * 2);
-            this.ctx.fill();
-            this.ctx.fillRect(-6, 0, 12, 12);
-            this.ctx.restore();
-            return;
-        }
-
-        // Active Glowing Dimensional Vortex
-        const grad = this.ctx.createRadialGradient(0, 0, 5, 0, 0, 42);
-        grad.addColorStop(0, '#ffffff');
-        grad.addColorStop(0.4, '#00e5ff');
-        grad.addColorStop(0.8, '#7209b7');
-        grad.addColorStop(1, 'transparent');
-
-        this.ctx.fillStyle = grad;
-        this.ctx.shadowColor = '#00e5ff';
-        this.ctx.shadowBlur = 24;
-
-        this.ctx.rotate(time);
-        this.ctx.beginPath();
-        this.ctx.ellipse(0, 0, 36, 48, 0, 0, Math.PI * 2);
-        this.ctx.fill();
-
-        this.ctx.strokeStyle = '#00e5ff';
-        this.ctx.lineWidth = 3;
-        this.ctx.stroke();
-
-        this.ctx.restore();
     }
 }
 

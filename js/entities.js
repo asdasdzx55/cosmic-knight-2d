@@ -185,7 +185,7 @@ class Player {
         this.jumpsLeft = this.maxJumps || 2;
         this.hasHitEnemies.clear();
         this.ultimateEnergy = 0;
-        this.chargeUltimate(35); // Start with 35% ultimate charge
+        this.chargeUltimate(0); // Starts strictly at 0%
     }
 
     update(dt, input, platforms, hazards, levelWidth, levelHeight) {
@@ -232,8 +232,6 @@ class Player {
             this.hasHitEnemies.clear();
             this.attackCombo = (this.attackCombo % 3) + 1;
             window.soundEngine.playAttack();
-
-            this.chargeUltimate(8); // Generous +8% ultimate charge on swing
 
             if (navigator.vibrate) navigator.vibrate(25);
 
@@ -928,11 +926,16 @@ class Enemy {
         window.soundEngine.playHit();
         window.particleSystem.emitHitSparks(this.x + this.w * 0.5, this.y + this.h * 0.5, this.color);
 
+        // Small +1% charge on connecting hits
+        if (!isUltimate && player && player.chargeUltimate) {
+            player.chargeUltimate(1);
+        }
+
         if (this.hp <= 0) {
             this.isDead = true;
             window.soundEngine.playCoin();
             if (!isUltimate && player && player.chargeUltimate) {
-                player.chargeUltimate(this.type === 'boss' ? 50 : 15);
+                player.chargeUltimate(this.type === 'boss' ? 15 : (this.type === 'knight' || this.type === 'turret' ? 8 : 5));
             }
             if (this.type === 'boss') {
                 window.soundEngine.playLevelClear();
@@ -940,6 +943,9 @@ class Enemy {
                 if (window.gameEngine) {
                     window.gameEngine.addScreenShake(12, 1.2);
                 }
+                setTimeout(() => {
+                    if (window.gameManager) window.gameManager.completeLevel();
+                }, 1000);
             } else {
                 window.particleSystem.emitGemBurst(this.x + this.w * 0.5, this.y + this.h * 0.5, this.color);
             }
@@ -1216,10 +1222,10 @@ class Collectible {
                 window.particleSystem.emitGemBurst(this.x + this.w * 0.5, this.y + this.h * 0.5, '#ffb703');
                 window.gameManager.collectLevelStar(this.starIdx);
             } else if (this.type === 'ultimate_rune') {
-                player.chargeUltimate(100);
+                player.chargeUltimate(40);
                 window.soundEngine.playSecretFound();
                 window.particleSystem.emitGemBurst(this.x + this.w * 0.5, this.y + this.h * 0.5, '#c77dff');
-                if (window.gameManager) window.gameManager.showToast('⚡ مخطوطة قديمة! تم شحن الضربة القاضية 100%');
+                if (window.gameManager) window.gameManager.showToast('⚡ مخطوطة قديمة! +40% شحن للضربة القاضية');
             } else if (this.type === 'heart') {
                 player.heal(1);
             }

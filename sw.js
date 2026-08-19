@@ -4,7 +4,7 @@
  * Caches all game assets for instant offline play.
  */
 
-const CACHE_NAME = 'cosmic-knight-v4.0';
+const CACHE_NAME = 'cosmic-knight-v5.0';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -17,6 +17,7 @@ const ASSETS_TO_CACHE = [
     './js/entities.js',
     './js/controls.js',
     './js/engine.js',
+    './js/dialogue.js',
     './js/game.js',
     './icons/icon-192.png',
     './icons/icon-512.png',
