@@ -3,12 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#0a0e1a">
+    <meta name="theme-color" content="#070b14">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description" content="فارس الأبعاد - لعبة مغامرات ومنصات 2D حماسية متعددة المراحل | برمجة وتطوير: أحمد عبد الوهاب">
+    <meta name="apple-mobile-web-app-title" content="فارس الأبعاد">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="فارس الأبعاد">
+    <meta name="description" content="فارس الأبعاد - لعبة مغامرات ومنصات 2D حماسية متعددة المراحل تعمل بدون إنترنت | برمجة وتطوير: أحمد عبد الوهاب">
     <title>فارس الأبعاد | Cosmic Knight 2D - برمجة أحمد عبد الوهاب</title>
     
+    <!-- PWA Manifest & App Icons -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon.png">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
     <!-- Google Fonts: Cairo for Arabic & Outfit for Game UI -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -187,6 +196,9 @@
                     </div>
 
                     <div class="menu-footer-toolbar">
+                        <button id="btn-install-pwa" class="mini-text-btn pwa-install-btn" title="تنزيل اللعبة وتثبيتها على الهاتف للعب بدون إنترنت">
+                            <i class="fa-solid fa-download"></i> <span>تثبيت اللعبة 📲</span>
+                        </button>
                         <button id="btn-toggle-sound" class="mini-icon-btn" title="كتم/تشغيل الصوت">
                             <i class="fa-solid fa-volume-high" id="sound-icon"></i>
                         </button>
@@ -276,10 +288,9 @@
                     <div class="how-col">
                         <div class="col-title"><i class="fa-solid fa-mobile-screen-button"></i> للهواتف والأجهزة اللوحية</div>
                         <ul class="control-list">
-                            <li><span class="ctrl-icon"><i class="fa-solid fa-chevron-left"></i> <i class="fa-solid fa-chevron-right"></i></span> <span>أزرار الحركة يميناً ويساراً في اليسار</span></li>
-                            <li><span class="ctrl-icon"><i class="fa-solid fa-arrow-up"></i></span> <span>زر القفز (فوق) باليسار للقفز السريع</span></li>
-                            <li><span class="ctrl-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span> <span>زر السيف (هجوم) وصد النيران في اليمين</span></li>
-                            <li><span class="ctrl-icon"><i class="fa-solid fa-bolt-lightning"></i></span> <span>زر الاندفاع (داش) لاختراق الحواجز</span></li>
+                            <li><span class="ctrl-icon"><i class="fa-solid fa-arrows-up-down-left-right"></i></span> <span>عصا تحكم 4-Way (فوق للقفز، تحت للانحناء، يمين ويسار للحركة)</span></li>
+                            <li><span class="ctrl-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span> <span>زر السيف (هجوم) وصد قذائف الليزر والنيران</span></li>
+                            <li><span class="ctrl-icon"><i class="fa-solid fa-bolt-lightning"></i></span> <span>زر الاندفاع (داش) لتفادي الأخطار واختراق الأعداء</span></li>
                         </ul>
                     </div>
                 </div>
@@ -381,6 +392,40 @@
                 </div>
             </div>
         </div>
+
+        <!-- 8. OFFLINE & APP INSTALL GUIDE MODAL -->
+        <div id="modal-install-app" class="ui-modal hidden">
+            <div class="modal-card install-card">
+                <div class="install-icon-header"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+                <h2 class="modal-title">تثبيت اللعبة واللعب بدون إنترنت (Offline)</h2>
+                <p class="install-info-text">يمكنك تثبيت اللعبة كتطبيق مستقل على هاتفك وتشغيلها في أي وقت وأي مكان حتى لو كان هاتفك في <strong>وضع الطيران (بدون نت)</strong>!</p>
+                
+                <div class="install-steps-container">
+                    <div class="install-step-box" id="install-android-box">
+                        <div class="step-badge"><i class="fa-brands fa-android"></i> أندرويد & كروم</div>
+                        <p>اضغط على الزر أدناه لتثبيت اللعبة فوراً كـ تطبيق:</p>
+                        <button id="btn-trigger-install" class="glow-btn primary-btn pulse-anim" style="margin-top: 8px;">
+                            <i class="fa-solid fa-download"></i> تثبيت التطبيق الآن
+                        </button>
+                    </div>
+
+                    <div class="install-step-box" id="install-ios-box">
+                        <div class="step-badge"><i class="fa-brands fa-apple"></i> هواتف آيفون (iOS Safari)</div>
+                        <ol class="ios-install-list">
+                            <li>اضغط على زر المشاركة <strong>(Share / <i class="fa-solid fa-arrow-up-from-bracket"></i>)</strong> أسفل المتصفح.</li>
+                            <li>اختر <strong>"إضافة إلى الشاشة الرئيسية" (Add to Home Screen / <i class="fa-solid fa-plus"></i>)</strong>.</li>
+                            <li>ستظهر أيقونة اللعبة على شاشتك الرئيسية وتعمل كأي تطبيق أصلي!</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 14px;">
+                    <button id="btn-close-install-modal" class="glow-btn secondary-btn">
+                        <i class="fa-solid fa-xmark"></i> إغلاق
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Scripts -->
@@ -391,5 +436,68 @@
     <script src="js/controls.js"></script>
     <script src="js/engine.js"></script>
     <script src="js/game.js"></script>
+
+    <!-- Service Worker & PWA Install Registration -->
+    <script>
+        // Register Service Worker for Offline PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((reg) => {
+                        console.log('[PWA] Service Worker registered successfully! Scope:', reg.scope);
+                    })
+                    .catch((err) => {
+                        console.warn('[PWA] Service Worker registration failed:', err);
+                    });
+            });
+        }
+
+        // PWA Install Prompt Handler
+        let deferredInstallPrompt = null;
+        const installBtn = document.getElementById('btn-install-pwa');
+        const installModal = document.getElementById('modal-install-app');
+        const triggerInstallBtn = document.getElementById('btn-trigger-install');
+        const closeInstallModalBtn = document.getElementById('btn-close-install-modal');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            if (installBtn) {
+                installBtn.style.display = 'inline-flex';
+                installBtn.classList.add('pulse-anim');
+            }
+        });
+
+        if (installBtn && installModal) {
+            installBtn.onclick = () => {
+                installModal.classList.remove('hidden');
+            };
+        }
+
+        if (triggerInstallBtn) {
+            triggerInstallBtn.onclick = async () => {
+                if (deferredInstallPrompt) {
+                    deferredInstallPrompt.prompt();
+                    const { outcome } = await deferredInstallPrompt.userChoice;
+                    console.log(`[PWA] Install prompt outcome: ${outcome}`);
+                    deferredInstallPrompt = null;
+                    installModal.classList.add('hidden');
+                } else {
+                    alert('لتثبيت اللعبة: اضغط على قائمة المتصفح (⋮) ثم اختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"');
+                }
+            };
+        }
+
+        if (closeInstallModalBtn && installModal) {
+            closeInstallModalBtn.onclick = () => {
+                installModal.classList.add('hidden');
+            };
+        }
+
+        window.addEventListener('appinstalled', () => {
+            console.log('[PWA] Cosmic Knight was installed successfully!');
+            if (installBtn) installBtn.style.display = 'none';
+        });
+    </script>
 </body>
 </html>
