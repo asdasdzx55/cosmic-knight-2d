@@ -106,7 +106,7 @@
                 <!-- Boss Health Bar -->
                 <div id="boss-hud-bar" class="boss-hud-container hidden">
                     <div class="boss-header">
-                        <span id="boss-name" class="boss-title">العملاق السيبراني (Cyber Colossus) ⚡</span>
+                        <span id="boss-name" class="boss-title">التنين الكوني الأسطوري (The Cosmic Dragon Sovereign) 🐉🔥</span>
                         <span id="boss-phase-badge" class="boss-phase">الطور 1</span>
                     </div>
                     <div class="boss-bar-track">
@@ -444,23 +444,24 @@
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="js/audio.js"></script>
-    <script src="js/particles.js"></script>
-    <script src="js/levels.js"></script>
-    <script src="js/entities.js"></script>
-    <script src="js/controls.js"></script>
-    <script src="js/engine.js"></script>
-    <script src="js/game.js"></script>
+    <!-- Scripts with Cache Buster v3.5 -->
+    <script src="js/audio.js?v=3.5"></script>
+    <script src="js/particles.js?v=3.5"></script>
+    <script src="js/levels.js?v=3.5"></script>
+    <script src="js/entities.js?v=3.5"></script>
+    <script src="js/controls.js?v=3.5"></script>
+    <script src="js/engine.js?v=3.5"></script>
+    <script src="js/game.js?v=3.5"></script>
 
     <!-- Service Worker & PWA Install Registration -->
     <script>
-        // Register Service Worker for Offline PWA
+        // Register Service Worker for Offline PWA with auto-update
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
+                navigator.serviceWorker.register('./sw.js?v=3.5')
                     .then((reg) => {
-                        console.log('[PWA] Service Worker registered successfully! Scope:', reg.scope);
+                        console.log('[PWA] Service Worker registered! Scope:', reg.scope);
+                        reg.update();
                     })
                     .catch((err) => {
                         console.warn('[PWA] Service Worker registration failed:', err);

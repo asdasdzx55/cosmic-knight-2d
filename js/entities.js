@@ -66,6 +66,7 @@ class Player {
         this.ultimateEnergy = 0;
         this.isExecutingUltimate = false;
         this.ultimateTimer = 0;
+        this.ultimateCooldownTimer = 0;
 
         // Health & Special Character Traits
         this.maxHp = 3;
@@ -114,7 +115,7 @@ class Player {
     }
 
     chargeUltimate(amount) {
-        this.ultimateEnergy = Math.min(100, this.ultimateEnergy + amount);
+        this.ultimateEnergy = Math.min(100, Math.max(0, this.ultimateEnergy + amount));
         const bar = document.getElementById('hud-ultimate-bar');
         const btn = document.getElementById('btn-ultimate');
         if (bar) bar.style.width = `${this.ultimateEnergy}%`;
@@ -130,36 +131,38 @@ class Player {
     }
 
     executeUltimate(gameEngine) {
-        if (this.ultimateEnergy < 100 || !gameEngine) return;
+        if (this.ultimateEnergy < 100 || this.ultimateCooldownTimer > 0 || !gameEngine) return;
+        
+        // Reset meter & set safety cooldown
         this.ultimateEnergy = 0;
+        this.ultimateCooldownTimer = 2.0;
         this.chargeUltimate(0);
 
-        this.invulnerableTimer = 2.5;
+        this.invulnerableTimer = 1.8;
         this.isExecutingUltimate = true;
-        this.ultimateTimer = 1.2;
+        this.ultimateTimer = 0.8;
 
         window.soundEngine.playUltimateFinisher();
-        if (navigator.vibrate) navigator.vibrate([200, 100, 300]);
+        if (navigator.vibrate) navigator.vibrate([100, 50, 150]);
 
-        gameEngine.addScreenShake(20, 1.2);
-        gameEngine.ultimateFinisherTimer = 1.4;
+        gameEngine.addScreenShake(14, 0.6);
+        gameEngine.ultimateFinisherTimer = 0.8;
 
         // Destroy all enemy projectiles
         gameEngine.projectiles = gameEngine.projectiles.filter(p => p.owner === 'player');
 
-        // Massive Finisher Damage to all enemies on screen
+        // Massive Finisher Damage with isUltimate flag to prevent recursive charging
         for (let i = gameEngine.enemies.length - 1; i >= 0; i--) {
             const e = gameEngine.enemies[i];
             window.particleSystem.emitHitSparks(e.x + e.w * 0.5, e.y + e.h * 0.5, '#00e5ff');
             if (e.type === 'boss') {
-                e.takeDamage(25, this);
+                e.takeDamage(25, this, true);
             } else {
-                e.takeDamage(10, this);
+                e.takeDamage(10, this, true);
             }
         }
 
-        window.particleSystem.emitLevelClearConfetti();
-        if (window.gameManager) window.gameManager.showToast('⚔️ الضربة القاضية الكونية (Cosmic Omega Slash)!');
+        if (window.gameManager) window.gameManager.showToast('⚔️ الضربة القاضية الكونية!');
     }
 
     reset(x, y) {
@@ -178,6 +181,7 @@ class Player {
         this.dashCooldownTimer = 0;
         this.dashBufferTimer = 0;
         this.jumpBufferTimer = 0;
+        this.ultimateCooldownTimer = 0;
         this.jumpsLeft = this.maxJumps || 2;
         this.hasHitEnemies.clear();
         this.chargeUltimate(0);
@@ -188,10 +192,13 @@ class Player {
 
         this.animTimer += dt;
         if (this.ultimateTimer > 0) this.ultimateTimer -= dt;
+        if (this.ultimateCooldownTimer > 0) this.ultimateCooldownTimer -= dt;
 
-        // Check Ultimate Activation (U key or Mobile Ultimate Button)
-        if (input.ultimate || input.ultimateJustPressed) {
-            if (this.ultimateEnergy >= 100 && window.gameEngine) {
+        // Check Ultimate Activation (U / Q key or Mobile Button)
+        if (input.ultimateJustPressed && this.ultimateEnergy >= 100 && this.ultimateCooldownTimer <= 0) {
+            input.ultimate = false;
+            input.ultimateJustPressed = false;
+            if (window.gameEngine) {
                 this.executeUltimate(window.gameEngine);
             }
         }
@@ -902,11 +909,11 @@ class Enemy {
         }
     }
 
-    takeDamage(amount, player) {
+    takeDamage(amount, player, isUltimate = false) {
         if (this.isDead) return;
 
-        // Shield Guard: blocks front hits unless player is dashing or behind him
-        if (this.type === 'knight') {
+        // Shield Guard: blocks front hits unless player is dashing or behind him or is ultimate
+        if (this.type === 'knight' && !isUltimate) {
             const isFacingPlayer = (this.facingRight && player.x > this.x) || (!this.facingRight && player.x < this.x);
             if (isFacingPlayer && !player.isDashing && player.y + player.h > this.y + 10) {
                 window.soundEngine.playHit();
@@ -923,6 +930,9 @@ class Enemy {
         if (this.hp <= 0) {
             this.isDead = true;
             window.soundEngine.playCoin();
+            if (!isUltimate && player && player.chargeUltimate) {
+                player.chargeUltimate(this.type === 'boss' ? 50 : 15);
+            }
             if (this.type === 'boss') {
                 window.soundEngine.playLevelClear();
                 window.particleSystem.emitBossExplosion(this.x + this.w * 0.5, this.y + this.h * 0.5, this.w, this.h);
@@ -1016,20 +1026,78 @@ class Enemy {
             ctx.fillRect(-8, -16, 4, 8);
             ctx.fillRect(4, -16, 4, 8);
         } else if (this.type === 'boss') {
-            ctx.fillStyle = '#1e0836';
-            ctx.fillRect(-45, -55, 90, 110);
+            // THE ANCIENT COSMIC DRAGON (التنين الكوني الأسطوري)
+            const wingFlap = Math.sin(this.bossTimer * 6) * 18;
+            const coreColor = this.phase === 3 ? '#ff0054' : (this.phase === 2 ? '#ffb703' : '#9d4edd');
 
-            ctx.fillStyle = this.phase === 3 ? '#ff2e63' : (this.phase === 2 ? '#9d4edd' : '#00e5ff');
-            ctx.shadowColor = ctx.fillStyle;
-            ctx.shadowBlur = 20;
+            // 1. Dragon Wings
+            ctx.fillStyle = this.phase === 3 ? '#7a001e' : '#3d0859';
+            ctx.strokeStyle = coreColor;
+            ctx.lineWidth = 3;
+            ctx.shadowColor = coreColor;
+            ctx.shadowBlur = 15;
 
+            // Left Wing
             ctx.beginPath();
-            ctx.arc(0, -10, 18, 0, Math.PI * 2);
+            ctx.moveTo(-20, -10);
+            ctx.quadraticCurveTo(-70, -60 + wingFlap, -95, -20 + wingFlap);
+            ctx.lineTo(-65, 10);
+            ctx.lineTo(-40, 20);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Right Wing
+            ctx.beginPath();
+            ctx.moveTo(20, -10);
+            ctx.quadraticCurveTo(70, -60 + wingFlap, 95, -20 + wingFlap);
+            ctx.lineTo(65, 10);
+            ctx.lineTo(40, 20);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // 2. Dragon Main Body
+            ctx.fillStyle = '#12001c';
+            ctx.strokeStyle = coreColor;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 36, 48, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Dragon Glowing Core / Chest
+            ctx.fillStyle = coreColor;
+            ctx.shadowColor = coreColor;
+            ctx.shadowBlur = 24;
+            ctx.beginPath();
+            ctx.arc(0, 4, 14, 0, Math.PI * 2);
             ctx.fill();
 
-            ctx.fillRect(-25, -42, 50, 10);
-            ctx.fillRect(-55, -45, 14, 40);
-            ctx.fillRect(41, -45, 14, 40);
+            // 3. Dragon Head & Horns
+            ctx.fillStyle = '#1c0326';
+            ctx.beginPath();
+            ctx.ellipse(0, -38, 22, 18, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Horns
+            ctx.fillStyle = '#ffb703';
+            ctx.beginPath();
+            ctx.moveTo(-12, -45);
+            ctx.lineTo(-24, -70);
+            ctx.lineTo(-6, -50);
+            ctx.moveTo(12, -45);
+            ctx.lineTo(24, -70);
+            ctx.lineTo(6, -50);
+            ctx.fill();
+
+            // Glowing Dragon Eyes
+            ctx.fillStyle = '#00e5ff';
+            ctx.shadowColor = '#00e5ff';
+            ctx.shadowBlur = 10;
+            ctx.fillRect(-10, -42, 6, 6);
+            ctx.fillRect(4, -42, 6, 6);
         }
 
         ctx.restore();

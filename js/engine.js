@@ -81,9 +81,12 @@ class GameEngine {
     update(dt, player, input) {
         if (!this.currentLevel) return;
 
-        // Update Screen Shake
+        // Update Screen Shake & Finisher Timer
         if (this.shakeTimer > 0) {
             this.shakeTimer -= dt;
+        }
+        if (this.ultimateFinisherTimer > 0) {
+            this.ultimateFinisherTimer -= dt;
         }
 
         // ================= 1. UPDATE DYNAMIC PLATFORMS =================
@@ -289,23 +292,22 @@ class GameEngine {
 
         // 11. ULTIMATE FINISHER CINEMATIC OVERLAY
         if (this.ultimateFinisherTimer > 0) {
-            this.ultimateFinisherTimer -= 0.016;
             this.ctx.save();
-            this.ctx.fillStyle = 'rgba(0, 229, 255, 0.25)';
+            this.ctx.fillStyle = 'rgba(0, 229, 255, 0.22)';
             this.ctx.fillRect(0, 0, this.width, this.height);
 
             this.ctx.strokeStyle = '#ffffff';
-            this.ctx.lineWidth = 6;
+            this.ctx.lineWidth = 5;
             this.ctx.shadowColor = '#00e5ff';
-            this.ctx.shadowBlur = 30;
+            this.ctx.shadowBlur = 20;
 
-            const progress = (1.4 - this.ultimateFinisherTimer) / 1.4;
-            const slashOffset = progress * this.width * 1.5;
+            const progress = Math.max(0, Math.min(1, (0.8 - this.ultimateFinisherTimer) / 0.8));
+            const slashOffset = progress * this.width * 1.4;
 
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < 3; i++) {
                 this.ctx.beginPath();
-                this.ctx.moveTo(slashOffset - 200 * i, 0);
-                this.ctx.lineTo(slashOffset + 400 - 200 * i, this.height);
+                this.ctx.moveTo(slashOffset - 250 * i, 0);
+                this.ctx.lineTo(slashOffset + 350 - 250 * i, this.height);
                 this.ctx.stroke();
             }
             this.ctx.restore();

@@ -242,52 +242,50 @@ class SoundEngine {
 
     playUltimateFinisher() {
         if (this.isMuted || !this.ctx) return;
-        const now = this.ctx.currentTime;
+        try {
+            const now = this.ctx.currentTime;
 
-        // 1. Sub-bass build-up
-        const subOsc = this.ctx.createOscillator();
-        const subGain = this.ctx.createGain();
-        subOsc.type = 'sine';
-        subOsc.frequency.setValueAtTime(80, now);
-        subOsc.frequency.exponentialRampToValueAtTime(30, now + 0.8);
-        subGain.gain.setValueAtTime(0.6 * this.sfxVolume, now);
-        subGain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
-        subOsc.connect(subGain);
-        subGain.connect(this.ctx.destination);
-        subOsc.start(now);
-        subOsc.stop(now + 0.85);
+            // 1. Sub-bass drop
+            const subOsc = this.ctx.createOscillator();
+            const subGain = this.ctx.createGain();
+            subOsc.type = 'sine';
+            subOsc.frequency.setValueAtTime(120, now);
+            subOsc.frequency.exponentialRampToValueAtTime(35, now + 0.45);
+            subGain.gain.setValueAtTime(0.5 * this.sfxVolume, now);
+            subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+            subOsc.connect(subGain);
+            subGain.connect(this.ctx.destination);
+            subOsc.start(now);
+            subOsc.stop(now + 0.5);
 
-        // 2. Rising Celestial Chord
-        [440, 659.25, 880, 1318.51].forEach((freq, i) => {
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(freq * 0.5, now);
-            osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.4);
-            gain.gain.setValueAtTime(0.12 * this.sfxVolume, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(now + i * 0.04);
-            osc.stop(now + 0.65);
-        });
+            // 2. High Celestial Sweep
+            const sweepOsc = this.ctx.createOscillator();
+            const sweepGain = this.ctx.createGain();
+            sweepOsc.type = 'sawtooth';
+            sweepOsc.frequency.setValueAtTime(300, now);
+            sweepOsc.frequency.exponentialRampToValueAtTime(1200, now + 0.35);
+            sweepGain.gain.setValueAtTime(0.25 * this.sfxVolume, now);
+            sweepGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            sweepOsc.connect(sweepGain);
+            sweepGain.connect(this.ctx.destination);
+            sweepOsc.start(now);
+            sweepOsc.stop(now + 0.42);
 
-        // 3. Huge explosive impact
-        setTimeout(() => {
-            if (!this.ctx) return;
-            const hitNow = this.ctx.currentTime;
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(140, hitNow);
-            osc.frequency.exponentialRampToValueAtTime(35, hitNow + 0.5);
-            gain.gain.setValueAtTime(0.7 * this.sfxVolume, hitNow);
-            gain.gain.exponentialRampToValueAtTime(0.01, hitNow + 0.5);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(hitNow);
-            osc.stop(hitNow + 0.55);
-        }, 300);
+            // 3. Impact Boom (Scheduled on audio timeline at +0.25s)
+            const boomOsc = this.ctx.createOscillator();
+            const boomGain = this.ctx.createGain();
+            boomOsc.type = 'triangle';
+            boomOsc.frequency.setValueAtTime(150, now + 0.25);
+            boomOsc.frequency.exponentialRampToValueAtTime(30, now + 0.65);
+            boomGain.gain.setValueAtTime(0.6 * this.sfxVolume, now + 0.25);
+            boomGain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+            boomOsc.connect(boomGain);
+            boomGain.connect(this.ctx.destination);
+            boomOsc.start(now + 0.25);
+            boomOsc.stop(now + 0.7);
+        } catch (e) {
+            console.warn('Audio ultimate finisher error:', e);
+        }
     }
 
     playShuriken() {

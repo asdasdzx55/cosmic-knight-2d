@@ -343,7 +343,7 @@ const GAME_LEVELS = [
             { x: 2600, y: 240, w: 90, h: 24, type: 'crumble', style: 'crumble' },
             { x: 2760, y: 330, w: 110, h: 24, type: 'moving', vy: -2.2, rangeY: 140, startY: 330, style: 'cyber_grid' },
 
-            // Final Boss Gateway Plateau
+            // Final Plateau
             { x: 2980, y: 560, w: 620, h: 240, type: 'solid', style: 'cyber_grid' }
         ],
         hazards: [
@@ -379,60 +379,10 @@ const GAME_LEVELS = [
     },
 
     // ==========================================
-    // STAGE 6: THE CYBER COLOUSSUS BOSS (معركة الزعيم)
+    // STAGE 6: SHADOW REALM (بُعد الظلال - مسارات سرية)
     // ==========================================
     {
         id: 6,
-        titleAr: "عرين العملاق الأخير",
-        titleEn: "The Cyber Colossus",
-        biome: "boss",
-        targetTime: 120,
-        width: 1600,
-        height: 700,
-        spawn: { x: 120, y: 480 },
-        bgGradient: ['#020205', '#100520', '#250b3e'],
-        platforms: [
-            // Main battle floor
-            { x: 0, y: 560, w: 1600, h: 140, type: 'solid', style: 'boss_floor' },
-            // Left tactical platform
-            { x: 180, y: 420, w: 140, h: 24, type: 'solid', style: 'boss_platform' },
-            { x: 220, y: 396, w: 48, h: 24, type: 'bounce', bounceForce: -18, style: 'cyber_bounce' },
-
-            // High center platform
-            { x: 450, y: 290, w: 220, h: 24, type: 'solid', style: 'boss_platform' },
-            { x: 930, y: 290, w: 220, h: 24, type: 'solid', style: 'boss_platform' },
-
-            // Right tactical platform
-            { x: 1280, y: 420, w: 140, h: 24, type: 'solid', style: 'boss_platform' },
-            { x: 1320, y: 396, w: 48, h: 24, type: 'bounce', bounceForce: -18, style: 'cyber_bounce' }
-        ],
-        hazards: [
-            // Side boundary electric fields
-            { x: 0, y: 200, w: 20, h: 360, type: 'laser' },
-            { x: 1580, y: 200, w: 20, h: 360, type: 'laser' }
-        ],
-        collectibles: [
-            { x: 500, y: 230, type: 'coin', val: 10 },
-            { x: 560, y: 230, type: 'coin', val: 10 },
-            { x: 1000, y: 230, type: 'coin', val: 10 },
-            { x: 1060, y: 230, type: 'coin', val: 10 },
-            // 3 Boss Trophy Stars (Unlocked on HP phases!)
-            { x: 560, y: 150, type: 'star_gem', starIdx: 1 },
-            { x: 800, y: 120, type: 'star_gem', starIdx: 2 },
-            { x: 1040, y: 150, type: 'star_gem', starIdx: 3 }
-        ],
-        checkpoints: [],
-        enemies: [
-            { type: 'boss', x: 800, y: 380, maxHp: 50 }
-        ],
-        exit: { x: 1480, y: 470, w: 60, h: 90, lockedUntilBossDead: true }
-    },
-
-    // ==========================================
-    // STAGE 7: SHADOW REALM (بُعد الظلال - مسارات سرية)
-    // ==========================================
-    {
-        id: 7,
         titleAr: "بُعد الظلال",
         titleEn: "Shadow Realm",
         biome: "shadow",
@@ -496,10 +446,10 @@ const GAME_LEVELS = [
     },
 
     // ==========================================
-    // STAGE 8: NEON CYBER METROPOLIS (المدينة السيبرانية)
+    // STAGE 7: NEON CYBER METROPOLIS (المدينة السيبرانية)
     // ==========================================
     {
-        id: 8,
+        id: 7,
         titleAr: "المدينة السيبرانية",
         titleEn: "Neon Cyber Metropolis",
         biome: "metropolis",
@@ -559,50 +509,102 @@ const GAME_LEVELS = [
     },
 
     // ==========================================
-    // STAGE 9: SANCTUM OF THE COSMIC VOID (محراب الفراغ الكوني - الزعيم الأسطوري)
+    // STAGE 8: SANCTUM OF THE COSMIC VOID (محراب الفراغ الكوني)
     // ==========================================
     {
-        id: 9,
+        id: 8,
         titleAr: "محراب الفراغ الكوني",
         titleEn: "Sanctum of the Void",
         biome: "void_sanctum",
-        targetTime: 150,
+        targetTime: 110,
+        width: 3200,
+        height: 800,
+        spawn: { x: 80, y: 520 },
+        bgGradient: ['#000000', '#0a0017', '#1a0033'],
+        platforms: [
+            { x: 0, y: 600, w: 400, h: 200, type: 'solid', style: 'void_floor' },
+            { x: 340, y: 470, w: 120, h: 24, type: 'solid', style: 'void_platform' },
+            { x: 530, y: 380, w: 140, h: 24, type: 'bounce', bounceForce: -19, style: 'void_bounce' },
+            { x: 740, y: 260, w: 180, h: 24, type: 'moving', vx: 2.5, rangeX: 200, startX: 740, style: 'void_platform' },
+            { x: 1060, y: 380, w: 140, h: 24, type: 'crumble', style: 'crumble' },
+
+            { x: 1300, y: 500, w: 350, h: 300, type: 'solid', style: 'void_floor' },
+            { x: 1720, y: 420, w: 130, h: 24, type: 'moving', vx: -2, rangeX: 160, startX: 1720, style: 'void_platform' },
+            { x: 1950, y: 320, w: 140, h: 24, type: 'solid', style: 'void_platform' },
+            { x: 2200, y: 240, w: 120, h: 24, type: 'bounce', bounceForce: -20, style: 'void_bounce' },
+            { x: 2450, y: 360, w: 150, h: 24, type: 'moving', vy: 2, rangeY: 140, startY: 360, style: 'void_platform' },
+            { x: 2750, y: 520, w: 450, h: 280, type: 'solid', style: 'void_floor' }
+        ],
+        hazards: [
+            { x: 400, y: 720, w: 900, h: 80, type: 'void_spikes' },
+            { x: 1650, y: 720, w: 1100, h: 80, type: 'void_spikes' }
+        ],
+        collectibles: [
+            { x: 220, y: 400, type: 'coin', val: 10 },
+            { x: 600, y: 240, type: 'ultimate_rune' },
+            { x: 800, y: 150, type: 'star_gem', starIdx: 1 },
+            { x: 1400, y: 420, type: 'coin', val: 10 },
+            { x: 2000, y: 230, type: 'star_gem', starIdx: 2 },
+            { x: 2500, y: 260, type: 'ultimate_rune' },
+            { x: 2850, y: 420, type: 'star_gem', starIdx: 3 }
+        ],
+        checkpoints: [
+            { x: 1400, y: 420, w: 40, h: 80, activated: false }
+        ],
+        enemies: [
+            { type: 'bat', x: 500, y: 260, rangeX: 160 },
+            { type: 'knight', x: 1380, y: 430, rangeX: 80 },
+            { type: 'turret', x: 1980, y: 280 },
+            { type: 'imp', x: 2500, y: 220, rangeX: 120 }
+        ],
+        exit: { x: 3050, y: 430, w: 60, h: 90 }
+    },
+
+    // ==========================================
+    // STAGE 9: THE ANCIENT COSMIC DRAGON (عرش التنين الكوني الأسطوري - الزعيم النهائي)
+    // ==========================================
+    {
+        id: 9,
+        titleAr: "عرش التنين الكوني الأسطوري",
+        titleEn: "The Cosmic Dragon Sovereign",
+        biome: "boss",
+        targetTime: 160,
         width: 1800,
         height: 750,
         spawn: { x: 120, y: 520 },
-        bgGradient: ['#000000', '#0a0017', '#1a0033'],
+        bgGradient: ['#000000', '#1c0303', '#3d0808'],
         platforms: [
-            // Grand Arena floor
-            { x: 0, y: 600, w: 1800, h: 150, type: 'solid', style: 'void_floor' },
-            // Left floating battle dais
-            { x: 180, y: 440, w: 160, h: 24, type: 'solid', style: 'void_platform' },
-            { x: 230, y: 416, w: 48, h: 24, type: 'bounce', bounceForce: -19, style: 'void_bounce' },
+            // Grand Obsidian Arena floor
+            { x: 0, y: 600, w: 1800, h: 150, type: 'solid', style: 'boss_floor' },
+            // Left tactical battle dais
+            { x: 180, y: 440, w: 160, h: 24, type: 'solid', style: 'boss_platform' },
+            { x: 230, y: 416, w: 48, h: 24, type: 'bounce', bounceForce: -19, style: 'magma_bounce' },
 
-            // High Center Celestial Altar
-            { x: 500, y: 300, w: 260, h: 24, type: 'solid', style: 'void_platform' },
-            { x: 1040, y: 300, w: 260, h: 24, type: 'solid', style: 'void_platform' },
+            // High Center Celestial Dragon Altars
+            { x: 500, y: 300, w: 260, h: 24, type: 'solid', style: 'boss_platform' },
+            { x: 1040, y: 300, w: 260, h: 24, type: 'solid', style: 'boss_platform' },
 
-            // Right floating battle dais
-            { x: 1460, y: 440, w: 160, h: 24, type: 'solid', style: 'void_platform' },
-            { x: 1510, y: 416, w: 48, h: 24, type: 'bounce', bounceForce: -19, style: 'void_bounce' }
+            // Right tactical battle dais
+            { x: 1460, y: 440, w: 160, h: 24, type: 'solid', style: 'boss_platform' },
+            { x: 1510, y: 416, w: 48, h: 24, type: 'bounce', bounceForce: -19, style: 'magma_bounce' }
         ],
         hazards: [
-            { x: 0, y: 150, w: 24, h: 450, type: 'void_laser' },
-            { x: 1776, y: 150, w: 24, h: 450, type: 'void_laser' }
+            { x: 0, y: 150, w: 24, h: 450, type: 'laser' },
+            { x: 1776, y: 150, w: 24, h: 450, type: 'laser' }
         ],
         collectibles: [
             { x: 560, y: 240, type: 'coin', val: 20 },
             { x: 640, y: 240, type: 'ultimate_rune' },
             { x: 1100, y: 240, type: 'ultimate_rune' },
             { x: 1180, y: 240, type: 'coin', val: 20 },
-            // Void Trophy Stars
+            // Dragon Trophy Stars (Unlocked on HP phases!)
             { x: 630, y: 140, type: 'star_gem', starIdx: 1 },
             { x: 900, y: 110, type: 'star_gem', starIdx: 2 },
             { x: 1170, y: 140, type: 'star_gem', starIdx: 3 }
         ],
         checkpoints: [],
         enemies: [
-            { type: 'boss', x: 900, y: 380, maxHp: 70, isVoidLord: true }
+            { type: 'boss', x: 900, y: 380, maxHp: 60, isDragon: true }
         ],
         exit: { x: 1660, y: 510, w: 60, h: 90, lockedUntilBossDead: true }
     }
