@@ -441,8 +441,8 @@ class Player {
         if (this.x + this.w > levelWidth) this.x = levelWidth - this.w;
 
         // Falling into pit / off screen
-        if (this.y > levelHeight + 100) {
-            this.takeDamage(999);
+        if (this.y > levelHeight + 60) {
+            this.die();
         }
 
         // Check Hazard collisions (spikes / lava)
@@ -535,9 +535,25 @@ class Player {
         }
     }
 
+    die() {
+        if (this.isDead) return;
+        this.hp = 0;
+        this.isDead = true;
+        this.invulnerableTimer = 0;
+        window.soundEngine.playDeath();
+        if (navigator.vibrate) navigator.vibrate([150, 80, 200]);
+        if (window.gameManager) {
+            setTimeout(() => {
+                window.gameManager.gameOver();
+            }, 400);
+        }
+    }
+
     takeDamage(amount = 1) {
-        if (this.invulnerableTimer > 0 || this.isDead) return;
-        this.hp -= amount;
+        if (this.isDead) return;
+        if (amount < 900 && this.invulnerableTimer > 0) return;
+
+        this.hp = Math.max(0, this.hp - amount);
         this.invulnerableTimer = 1.2;
         window.soundEngine.playHurt();
         if (navigator.vibrate) navigator.vibrate(100);
@@ -545,10 +561,7 @@ class Player {
         window.particleSystem.emitHitSparks(this.x + this.w * 0.5, this.y + this.h * 0.5, '#ff2e63');
 
         if (this.hp <= 0) {
-            this.hp = 0;
-            this.isDead = true;
-            window.soundEngine.playDeath();
-            if (navigator.vibrate) navigator.vibrate([150, 80, 200]);
+            this.die();
         }
     }
 
@@ -931,6 +944,28 @@ class Enemy {
             player.chargeUltimate(1);
         }
 
+        // Boss drops hearts on phase transitions
+        if (this.type === 'boss' && this.hp > 0) {
+            const hpRatio = this.hp / this.maxHp;
+            if (hpRatio <= 0.66 && !this.droppedHeartPhase2) {
+                this.droppedHeartPhase2 = true;
+                this.phase = 2;
+                if (window.gameEngine) {
+                    window.gameEngine.collectibles.push(new Collectible({ x: this.x - 70, y: this.y + 20, type: 'heart' }));
+                    window.gameEngine.collectibles.push(new Collectible({ x: this.x + 70, y: this.y + 20, type: 'heart' }));
+                    if (window.gameManager) window.gameManager.showToast('💖 التنين يترنح! سقطت بلورات شفاء!');
+                }
+            } else if (hpRatio <= 0.33 && !this.droppedHeartPhase3) {
+                this.droppedHeartPhase3 = true;
+                this.phase = 3;
+                if (window.gameEngine) {
+                    window.gameEngine.collectibles.push(new Collectible({ x: this.x - 90, y: this.y + 20, type: 'heart' }));
+                    window.gameEngine.collectibles.push(new Collectible({ x: this.x + 90, y: this.y + 20, type: 'heart' }));
+                    if (window.gameManager) window.gameManager.showToast('💖 غضب التنين الأسطوري! سقطت قلوب إضافية!');
+                }
+            }
+        }
+
         if (this.hp <= 0) {
             this.isDead = true;
             window.soundEngine.playCoin();
@@ -1228,6 +1263,9 @@ class Collectible {
                 if (window.gameManager) window.gameManager.showToast('⚡ مخطوطة قديمة! +40% شحن للضربة القاضية');
             } else if (this.type === 'heart') {
                 player.heal(1);
+                window.soundEngine.playCoin();
+                window.particleSystem.emitGemBurst(this.x + this.w * 0.5, this.y + this.h * 0.5, '#ff2e63');
+                if (window.gameManager) window.gameManager.showToast('💖 +1 صحة! استعدت طاقتك');
             }
         }
     }
@@ -1280,6 +1318,25 @@ class Collectible {
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
             ctx.arc(0, 0, 4, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (this.type === 'heart') {
+            const beat = 1 + Math.sin(this.animTimer * 6) * 0.15;
+            ctx.scale(beat, beat);
+            ctx.fillStyle = '#ff2e63';
+            ctx.shadowColor = '#ff2e63';
+            ctx.shadowBlur = 18;
+            ctx.beginPath();
+            ctx.moveTo(0, 5);
+            ctx.bezierCurveTo(-12, -6, -14, -14, -7, -14);
+            ctx.bezierCurveTo(0, -14, 0, -8, 0, -8);
+            ctx.bezierCurveTo(0, -8, 0, -14, 7, -14);
+            ctx.bezierCurveTo(14, -14, 12, -6, 0, 5);
+            ctx.fill();
+
+            // Specular shine on heart
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(-4, -9, 2.5, 0, Math.PI * 2);
             ctx.fill();
         }
 

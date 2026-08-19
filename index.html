@@ -475,22 +475,22 @@
         </div>
     </div>
 
-    <!-- Scripts with Cache Buster v6.0 -->
-    <script src="js/audio.js?v=6.0"></script>
-    <script src="js/particles.js?v=6.0"></script>
-    <script src="js/levels.js?v=6.0"></script>
-    <script src="js/entities.js?v=6.0"></script>
-    <script src="js/controls.js?v=6.0"></script>
-    <script src="js/engine.js?v=6.0"></script>
-    <script src="js/dialogue.js?v=6.0"></script>
-    <script src="js/game.js?v=6.0"></script>
+    <!-- Scripts with Cache Buster v7.0 -->
+    <script src="js/audio.js?v=7.0"></script>
+    <script src="js/particles.js?v=7.0"></script>
+    <script src="js/levels.js?v=7.0"></script>
+    <script src="js/entities.js?v=7.0"></script>
+    <script src="js/controls.js?v=7.0"></script>
+    <script src="js/engine.js?v=7.0"></script>
+    <script src="js/dialogue.js?v=7.0"></script>
+    <script src="js/game.js?v=7.0"></script>
 
     <!-- Service Worker & PWA Install Registration -->
     <script>
         // Register Service Worker for Offline PWA with auto-update
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js?v=6.0')
+                navigator.serviceWorker.register('./sw.js?v=7.0')
                     .then((reg) => {
                         console.log('[PWA] Service Worker registered! Scope:', reg.scope);
                         reg.update();

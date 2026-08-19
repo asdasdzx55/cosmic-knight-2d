@@ -590,6 +590,13 @@ const GAME_LEVELS = [
             { x: 1776, y: 150, w: 24, h: 450, type: 'laser' }
         ],
         collectibles: [
+            // Life-saving Hearts across the Dragon Arena
+            { x: 260, y: 380, type: 'heart' },
+            { x: 600, y: 240, type: 'heart' },
+            { x: 900, y: 540, type: 'heart' },
+            { x: 1200, y: 240, type: 'heart' },
+            { x: 1540, y: 380, type: 'heart' },
+
             { x: 560, y: 240, type: 'coin', val: 20 },
             { x: 640, y: 240, type: 'ultimate_rune' },
             { x: 1100, y: 240, type: 'ultimate_rune' },

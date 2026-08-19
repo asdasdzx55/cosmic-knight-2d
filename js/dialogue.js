@@ -1,17 +1,17 @@
 /**
- * COSMIC KNIGHT 2D - STORY DIALOGUE SYSTEM
+ * COSMIC KNIGHT 2D - STORY DIALOGUE SYSTEM (نظام حوارات القصة الملحمية بالعربية)
  * Interactive story cutscenes between the Hero (Knight) and the Boss / Enemies
  * Programmed & Developed by: Ahmed Abdelwahab (أحمد عبد الوهاب)
  */
 
 const GAME_DIALOGUES = {
     // ==========================================
-    // STAGE 1: THE MYSTIC FOREST
+    // STAGE 1: THE MYSTIC FOREST (الغابة الساحرة)
     // ==========================================
     intro_1: [
         {
             speaker: 'hero',
-            nameAr: 'الفارس السماوي (Hero)',
+            nameAr: 'الفارس السماوي',
             nameEn: 'Cosmic Knight',
             titleAr: 'حامي الأبعاد الكونية',
             titleEn: 'Protector of the Dimensions',
@@ -48,7 +48,7 @@ const GAME_DIALOGUES = {
             speaker: 'enemy',
             nameAr: 'حارس الغابة المظلمة',
             nameEn: 'Forest Sentinel',
-            titleAr: 'خادم التنين',
+            titleAr: 'خادم التنين المهزوم',
             titleEn: 'Dragon Servant',
             avatar: '🦇',
             color: '#ff2e63',
@@ -69,12 +69,53 @@ const GAME_DIALOGUES = {
     ],
 
     // ==========================================
-    // STAGE 3: VOLCANIC CORE
+    // STAGE 2: CRYSTAL CAVERNS (كهوف الكريستال)
+    // ==========================================
+    intro_2: [
+        {
+            speaker: 'enemy',
+            nameAr: 'عفريت الكريستال الناري',
+            nameEn: 'Crystal Imp',
+            titleAr: 'حارس المناجم العميقة',
+            titleEn: 'Deep Mines Warden',
+            avatar: '💎',
+            color: '#00f5d4',
+            textAr: 'هذه الكريستالات ملك لطاقة التنين الكوني.. لن تلمس حجراً واحداً أيها المتسلل!',
+            textEn: 'These crystals belong to the Cosmic Dragon.. You will not touch a single gem!'
+        },
+        {
+            speaker: 'hero',
+            nameAr: 'الفارس السماوي',
+            nameEn: 'Cosmic Knight',
+            titleAr: 'حامي الأبعاد',
+            titleEn: 'Protector of Realms',
+            avatar: '⚔️',
+            color: '#00e5ff',
+            textAr: 'سأسترجع طاقة النجوم وأحرر هذه الكهوف من طغيانكم!',
+            textEn: 'I will reclaim the starlight energy and free these caves from tyranny!'
+        }
+    ],
+    outro_2: [
+        {
+            speaker: 'hero',
+            nameAr: 'الفارس السماوي',
+            nameEn: 'Cosmic Knight',
+            titleAr: 'حامي الأبعاد',
+            titleEn: 'Protector of Realms',
+            avatar: '⚔️',
+            color: '#00e5ff',
+            textAr: 'تم تطهير كهوف الكريستال.. الطريق الآن يقودنا نحو أعماق البركان الثائر!',
+            textEn: 'The crystal caverns are cleansed.. The path now leads towards the Volcanic Core!'
+        }
+    ],
+
+    // ==========================================
+    // STAGE 3: VOLCANIC CORE (البركان الثائر)
     // ==========================================
     intro_3: [
         {
             speaker: 'enemy',
-            nameAr: 'شيطان الحمم (Magma Fiend)',
+            nameAr: 'شيطان الحمم البركاني',
             nameEn: 'Magma Fiend',
             titleAr: 'حاكم صهارة البركان',
             titleEn: 'Lord of Molten Depths',
@@ -91,20 +132,20 @@ const GAME_DIALOGUES = {
             titleEn: 'Protector of Realms',
             avatar: '⚔️',
             color: '#00e5ff',
-            textAr: 'نيران الشر لن تثني عزيمتي.. سأخمد هذا البركان وأعيد التوازن!',
+            textAr: 'نيران الشر لن تثني عزيمتي.. سأخمد هذا البركان وأعيد التوازن للأبعاد!',
             textEn: 'Infernal fire cannot bend my will.. I will extinguish evil and restore balance!'
         }
     ],
     outro_3: [
         {
             speaker: 'enemy',
-            nameAr: 'شيطان الحمم',
+            nameAr: 'شيطان الحمم البركاني',
             nameEn: 'Magma Fiend',
-            titleAr: 'حاكم الصهارة',
+            titleAr: 'حاكم الصهارة المهزوم',
             titleEn: 'Molten Lord',
             avatar: '🔥',
             color: '#ff5400',
-            textAr: 'لقد استطعت النجاة من لهيب البركان.. لكن سماء الفراغ ستسحقك بلا رحمة!',
+            textAr: 'لقد استطعت النجاة من لهيب البركان.. لكن سماء الفراغ والظلال ستسحقك بلا رحمة!',
             textEn: 'You survived the volcanic fires.. but the void sky will crush you without mercy!'
         },
         {
@@ -121,12 +162,94 @@ const GAME_DIALOGUES = {
     ],
 
     // ==========================================
-    // STAGE 6: SHADOW REALM
+    // STAGE 4: ANCIENT SKY RUINS (أطلال السماء)
+    // ==========================================
+    intro_4: [
+        {
+            speaker: 'enemy',
+            nameAr: 'فارس الحراسة المجنح',
+            nameEn: 'Sky Guardian',
+            titleAr: 'حامي المعابد السماوية',
+            titleEn: 'Sky Temple Guardian',
+            avatar: '🦅',
+            color: '#4cc9f0',
+            textAr: 'رياح السماء العاتية وفخاخ المعابد القديمة ستلقي بك إلى الهاوية السحيقة!',
+            textEn: 'The fierce sky winds and ancient temple traps will cast you into the abyss!'
+        },
+        {
+            speaker: 'hero',
+            nameAr: 'الفارس السماوي',
+            nameEn: 'Cosmic Knight',
+            titleAr: 'حامي الأبعاد',
+            titleEn: 'Protector of Realms',
+            avatar: '⚔️',
+            color: '#00e5ff',
+            textAr: 'أنا فارس الأبعاد، والسماء فنائي وسيفي درعي!',
+            textEn: 'I am the Cosmic Knight, the sky is my arena and my blade is my shield!'
+        }
+    ],
+    outro_4: [
+        {
+            speaker: 'hero',
+            nameAr: 'الفارس السماوي',
+            nameEn: 'Cosmic Knight',
+            titleAr: 'حامي الأبعاد',
+            titleEn: 'Protector of Realms',
+            avatar: '⚔️',
+            color: '#00e5ff',
+            textAr: 'عبرنا أطلال السماء بنجاح.. الآن ندخل إلى المعقل التكنولوجي المظلم!',
+            textEn: 'Sky ruins cleared.. Now we breach the dark cyber laboratory!'
+        }
+    ],
+
+    // ==========================================
+    // STAGE 5: NEON CYBER LAB (المختبر السايبراني)
+    // ==========================================
+    intro_5: [
+        {
+            speaker: 'enemy',
+            nameAr: 'المدفع الآلي الذكي',
+            nameEn: 'Cyber Defense Core',
+            titleAr: 'نظام الدفاع السيبراني للتنين',
+            titleEn: 'Dragon Cyber Defense',
+            avatar: '🤖',
+            color: '#ff007f',
+            textAr: 'تم رصد متسلل بشري! تفعيل بروتوكول الليزر الفتاك والقضاء الفوري!',
+            textEn: 'Human intruder detected! Activating deadly laser protocol for instant termination!'
+        },
+        {
+            speaker: 'hero',
+            nameAr: 'الفارس السماوي',
+            nameEn: 'Cosmic Knight',
+            titleAr: 'حامي الأبعاد',
+            titleEn: 'Protector of Realms',
+            avatar: '⚔️',
+            color: '#00e5ff',
+            textAr: 'دفاعاتكم الآلية لن تصمد أمام سرعة البرق وقوة السيف السماوي!',
+            textEn: 'Your automated defenses cannot withstand lightning speed and cosmic power!'
+        }
+    ],
+    outro_5: [
+        {
+            speaker: 'hero',
+            nameAr: 'الفارس السماوي',
+            nameEn: 'Cosmic Knight',
+            titleAr: 'حامي الأبعاد',
+            titleEn: 'Protector of Realms',
+            avatar: '⚔️',
+            color: '#00e5ff',
+            textAr: 'تم تعطيل المنظومة السيبرانية.. اقتربنا من بُعد الظلال الخطير!',
+            textEn: 'Cyber system dismantled.. Approaching the perilous Shadow Realm!'
+        }
+    ],
+
+    // ==========================================
+    // STAGE 6: SHADOW REALM (بُعد الظلال)
     // ==========================================
     intro_6: [
         {
             speaker: 'enemy',
-            nameAr: 'شبح الظلال الكوني (Shadow Wraith)',
+            nameAr: 'شبح الظلال الكوني',
             nameEn: 'Shadow Wraith',
             titleAr: 'حارس الفراغ المظلم',
             titleEn: 'Guardian of the Void',
@@ -152,7 +275,7 @@ const GAME_DIALOGUES = {
             speaker: 'enemy',
             nameAr: 'شبح الظلال الكوني',
             nameEn: 'Shadow Wraith',
-            titleAr: 'حارس الفراغ',
+            titleAr: 'حارس الفراغ المهزوم',
             titleEn: 'Void Guardian',
             avatar: '🌌',
             color: '#9d4edd',
@@ -173,12 +296,94 @@ const GAME_DIALOGUES = {
     ],
 
     // ==========================================
+    // STAGE 7: NEON CYBER METROPOLIS (المدينة السيبرانية)
+    // ==========================================
+    intro_7: [
+        {
+            speaker: 'enemy',
+            nameAr: 'فارس الدرع الفولاذي',
+            nameEn: 'Cyber Mech Knight',
+            titleAr: 'قائد حرس المدينة العائمة',
+            titleEn: 'Commander of the Cyber Citadel',
+            avatar: '🛡️',
+            color: '#00b4d8',
+            textAr: 'أهلاً بك في مقبرتك التكنولوجية! دروعنا المصفحة لا تخترقها سيوف العصور القديمة!',
+            textEn: 'Welcome to your tech graveyard! Our armored shields cannot be pierced by ancient blades!'
+        },
+        {
+            speaker: 'hero',
+            nameAr: 'الفارس السماوي',
+            nameEn: 'Cosmic Knight',
+            titleAr: 'حامي الأبعاد',
+            titleEn: 'Protector of Realms',
+            avatar: '⚔️',
+            color: '#00e5ff',
+            textAr: 'سيفي يحمل طاقة النجوم الصافية، وسيخترق أصلب دروعكم بضربة واحدة!',
+            textEn: 'My blade carries pure starlight and will cleave your strongest shields in one strike!'
+        }
+    ],
+    outro_7: [
+        {
+            speaker: 'hero',
+            nameAr: 'الفارس السماوي',
+            nameEn: 'Cosmic Knight',
+            titleAr: 'حامي الأبعاد',
+            titleEn: 'Protector of Realms',
+            avatar: '⚔️',
+            color: '#00e5ff',
+            textAr: 'سقطت المدينة السيبرانية.. الباب الأخير أمام محراب الفراغ ينفتح الآن!',
+            textEn: 'Cyber city liberated.. The final gate to the Void Sanctum opens now!'
+        }
+    ],
+
+    // ==========================================
+    // STAGE 8: SANCTUM OF THE COSMIC VOID (محراب الفراغ الكوني)
+    // ==========================================
+    intro_8: [
+        {
+            speaker: 'enemy',
+            nameAr: 'كبير كهنة الفراغ المظلم',
+            nameEn: 'Void High Priest',
+            titleAr: 'حارس عرش التنين',
+            titleEn: 'Warden of the Dragon Throne',
+            avatar: '🔮',
+            color: '#c77dff',
+            textAr: 'هذا هو المحراب المقدس لسيدنا التنين الكوني! كل من يدخل هنا يُمحى وجوده من التاريخ!',
+            textEn: 'This is the sacred sanctum of our Lord Cosmic Dragon! All who enter shall be erased from history!'
+        },
+        {
+            speaker: 'hero',
+            nameAr: 'الفارس السماوي',
+            nameEn: 'Cosmic Knight',
+            titleAr: 'حامي الأبعاد',
+            titleEn: 'Protector of Realms',
+            avatar: '⚔️',
+            color: '#00e5ff',
+            textAr: 'اليوم يُكتب تاريخ جديد بتحرير الكون من قيود الفراغ والظلام!',
+            textEn: 'Today, history is rewritten with the liberation of the universe from void and darkness!'
+        }
+    ],
+    outro_8: [
+        {
+            speaker: 'hero',
+            nameAr: 'الفارس السماوي',
+            nameEn: 'Cosmic Knight',
+            titleAr: 'حامي الأبعاد',
+            titleEn: 'Protector of Realms',
+            avatar: '⚔️',
+            color: '#00e5ff',
+            textAr: 'انتهت كل الحواجز.. العرش أمامي الآن، حانت المعركة الكبرى ضد التنين الكوني الأسطوري!',
+            textEn: 'All barriers shattered.. The throne lies ahead, the final grand battle against the Cosmic Dragon begins!'
+        }
+    ],
+
+    // ==========================================
     // STAGE 9: THE COSMIC DRAGON FINALE (الزعيم الأسطوري النهائي)
     // ==========================================
     intro_9: [
         {
             speaker: 'enemy',
-            nameAr: 'التنين الكوني الأسطوري (Cosmic Dragon)',
+            nameAr: 'التنين الكوني الأسطوري',
             nameEn: 'The Cosmic Dragon Sovereign',
             titleAr: 'سيد الأبعاد والظلام الأعظم',
             titleEn: 'Supreme Sovereign of the Void',
@@ -189,7 +394,7 @@ const GAME_DIALOGUES = {
         },
         {
             speaker: 'hero',
-            nameAr: 'الفارس السماوي (Hero)',
+            nameAr: 'الفارس السماوي',
             nameEn: 'Cosmic Knight',
             titleAr: 'بطل المجرة وحامي الأبعاد',
             titleEn: 'Champion of the Cosmos',
@@ -224,9 +429,9 @@ const GAME_DIALOGUES = {
         },
         {
             speaker: 'hero',
-            nameAr: 'الفارس السماوي (البطل المنتصر)',
-            nameEn: 'Cosmic Knight (Victor)',
-            titleAr: 'محرر الأبعاد الكونية',
+            nameAr: 'الفارس السماوي',
+            nameEn: 'Cosmic Knight',
+            titleAr: 'محرر الأبعاد الكونية المنتصر',
             titleEn: 'Liberator of the Dimensions',
             avatar: '⚔️',
             color: '#00e5ff',
@@ -235,7 +440,7 @@ const GAME_DIALOGUES = {
         },
         {
             speaker: 'narrator',
-            nameAr: 'الراوي الكوني (The Universe)',
+            nameAr: 'الراوي الكوني',
             nameEn: 'Cosmic Chronicler',
             titleAr: 'سجل الأبطال الخالدين',
             titleEn: 'Annals of Eternity',
@@ -339,7 +544,7 @@ class DialogueManager {
         }
 
         const step = this.currentDialogue[this.currentIndex];
-        const isAr = !window.gameManager || window.gameManager.saveData.lang === 'ar';
+        const isAr = true; // Always pure Arabic as requested
 
         if (this.speakerName) this.speakerName.innerText = isAr ? step.nameAr : step.nameEn;
         if (this.speakerTitle) this.speakerTitle.innerText = isAr ? step.titleAr : step.titleEn;
