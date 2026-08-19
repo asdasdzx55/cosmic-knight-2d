@@ -185,9 +185,9 @@
                     </div>
 
                     <div class="menu-stats-pill">
-                        <span><i class="fa-solid fa-star gold-text"></i> <span id="menu-total-stars">0/18</span></span>
+                        <span><i class="fa-solid fa-star gold-text"></i> <span id="menu-total-stars">0 / 30</span></span>
                         <span><i class="fa-solid fa-coins gold-coin-icon"></i> <span id="menu-total-coins">0</span></span>
-                        <span><i class="fa-solid fa-infinity" style="color: #c77dff;"></i> أعلى موجة: <strong id="menu-high-wave" style="color: #00e5ff;">1</strong></span>
+                        <span><i class="fa-solid fa-map"></i> 10 مراحل</span>
                     </div>
 
                     <!-- DIFFICULTY SELECTOR -->
@@ -220,14 +220,10 @@
                             <i class="fa-solid fa-play"></i>
                             <span>بدء مغامرة القصة</span>
                         </button>
-                        <button id="btn-menu-survival" class="glow-btn survival-btn">
-                            <i class="fa-solid fa-infinity"></i>
-                            <span>طور البقاء اللانهائي (موجات الوحوش)</span>
-                        </button>
                         <div class="menu-sub-actions-row">
                             <button id="btn-menu-stages" class="glow-btn secondary-btn">
                                 <i class="fa-solid fa-map-location-dot"></i>
-                                <span>المراحل</span>
+                                <span>المراحل (10 مراحل)</span>
                             </button>
                             <button id="btn-menu-shop" class="glow-btn secondary-btn">
                                 <i class="fa-solid fa-store"></i>
@@ -553,22 +549,22 @@
         </div>
     </div>
 
-    <!-- Scripts with Cache Buster v10.0 (High Performance Ultra Smooth) -->
-    <script src="js/audio.js?v=10.0"></script>
-    <script src="js/particles.js?v=10.0"></script>
-    <script src="js/levels.js?v=10.0"></script>
-    <script src="js/entities.js?v=10.0"></script>
-    <script src="js/controls.js?v=10.0"></script>
-    <script src="js/engine.js?v=10.0"></script>
-    <script src="js/dialogue.js?v=10.0"></script>
-    <script src="js/game.js?v=10.0"></script>
+    <!-- Scripts with Cache Buster v11.0 (Stage 10 Molten Skyway + Fast Performance) -->
+    <script src="js/audio.js?v=11.0"></script>
+    <script src="js/particles.js?v=11.0"></script>
+    <script src="js/levels.js?v=11.0"></script>
+    <script src="js/entities.js?v=11.0"></script>
+    <script src="js/controls.js?v=11.0"></script>
+    <script src="js/engine.js?v=11.0"></script>
+    <script src="js/dialogue.js?v=11.0"></script>
+    <script src="js/game.js?v=11.0"></script>
 
     <!-- Service Worker & PWA Install Registration -->
     <script>
         // Register Service Worker for Offline PWA with auto-update
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js?v=10.0')
+                navigator.serviceWorker.register('./sw.js?v=11.0')
                     .then((reg) => {
                         console.log('[PWA] Service Worker registered! Scope:', reg.scope);
                         reg.update();

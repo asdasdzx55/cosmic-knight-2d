@@ -449,6 +449,69 @@ const GAME_DIALOGUES = {
             textAr: 'وهكذا انتصر الفارس الشجاع، وعم السلام والأمان أرجاء العوالم والمجرات.. تهانينا لك أيها البطل على هذا الإنجاز العظيم!',
             textEn: 'And so the brave knight triumphed, bringing peace and safety across the galaxy.. Congratulations, Hero, on this grand achievement!'
         }
+    ],
+
+    // ==========================================
+    // STAGE 10: THE MOLTEN SKYWAY (مسار الحمم المتحرك - تحدي الذهب)
+    // ==========================================
+    intro_10: [
+        {
+            speaker: 'hero',
+            nameAr: 'الفارس السماوي',
+            nameEn: 'Cosmic Knight',
+            titleAr: 'المدافع عن الأبرياء',
+            titleEn: 'Protector of the Innocent',
+            avatar: '⚔️',
+            color: '#00e5ff',
+            textAr: 'هذا المسار البركاني مليء بالمنصات المتحركة والصهارة الملتهبة.. يجب أن أتحلى بأعلى درجات التركيز والقفز الدقيق للوصول لكنز الذهب العظيم!',
+            textEn: 'This volcanic skyway is full of moving platforms and raging magma.. I must maintain utmost precision to claim the cosmic gold treasury!'
+        },
+        {
+            speaker: 'enemy',
+            nameAr: 'حارس الصهارة النارية',
+            nameEn: 'Magma Sentinel',
+            titleAr: 'حارس مسار الحمم',
+            titleEn: 'Guardian of the Skyway',
+            avatar: '🔥',
+            color: '#ff5400',
+            textAr: 'الحمم الساخنة تبتلع كل من يتردد! هل لديك الشجاعة والمهارة لعبور المنصات المتحركة دون السقوط في البركان؟',
+            textEn: 'The scalding magma swallows any who hesitate! Do you have the skill to traverse the moving platforms without falling?'
+        },
+        {
+            speaker: 'hero',
+            nameAr: 'الفارس السماوي',
+            nameEn: 'Cosmic Knight',
+            titleAr: 'المدافع عن الأبرياء',
+            titleEn: 'Protector of the Innocent',
+            avatar: '⚔️',
+            color: '#00e5ff',
+            textAr: 'عزيمتي لا تلين! سأعبر هذه الحمم وأجمع الذهب لأقوي به عتادي وأحمي كل الأبرياء!',
+            textEn: 'My resolve is unyielding! I shall cross the magma, gather the gold, and protect everyone!'
+        }
+    ],
+    outro_10: [
+        {
+            speaker: 'hero',
+            nameAr: 'الفارس السماوي',
+            nameEn: 'Cosmic Knight',
+            titleAr: 'المدافع عن الأبرياء',
+            titleEn: 'Protector of the Innocent',
+            avatar: '⚔️',
+            color: '#00e5ff',
+            textAr: 'رائع! لقد اجتزت مسار الحمم المتحرك كاملاً وجمعت كنز الذهب الضخم! أصبحت قوتنا مضاعفة الآن!',
+            textEn: 'Magnificent! I have conquered the entire molten moving skyway and gathered the massive gold treasure!'
+        },
+        {
+            speaker: 'narrator',
+            nameAr: 'الراوي',
+            nameEn: 'Story Narrator',
+            titleAr: 'سجل الشجعان والأبطال',
+            titleEn: 'Annals of Brave Heroes',
+            avatar: '👑',
+            color: '#ffb703',
+            textAr: 'إنجاز بطولي استثنائي! لقد أثبت الفارس مهارة فائقة في التوازن والشجاعة فوق الحمم البركانية.. مبارك لك هذا الفوز والذهب الوفير!',
+            textEn: 'An exceptional heroic feat! The knight has proven supreme skill and bravery over the volcanic molten pit.. Congratulations on this triumph and abundant gold!'
+        }
     ]
 };
 

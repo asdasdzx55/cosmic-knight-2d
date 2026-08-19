@@ -1,6 +1,6 @@
 /**
  * COSMIC KNIGHT 2D - MASTER GAME CONTROLLER
- * State management, save data persistence, UI screens, shop system, localization, Endless Survival & Rewarded Ads.
+ * State management, save data persistence, UI screens, shop system, localization, and Rewarded Ads.
  * Programmed & Developed by: Ahmed Abdelwahab (أحمد عبد الوهاب)
  */
 
@@ -14,20 +14,24 @@ class GameManager {
         this.enemiesDefeated = 0;
         this.damageTakenThisLevel = 0;
 
-        // Endless Survival Mode variables
-        this.isEndlessMode = false;
-        this.currentWave = 1;
-        this.survivalScore = 0;
-        this.isWaveSpawning = false;
-        this.waveCooldownTimer = 0;
-
         // Rewarded Ad Timer & state
         this.adInterval = null;
 
         // Save Data Model
         this.saveData = {
             unlockedStages: [1],
-            stageStars: { 1: [false, false, false], 2: [false, false, false], 3: [false, false, false], 4: [false, false, false], 5: [false, false, false], 6: [false, false, false], 7: [false, false, false], 8: [false, false, false], 9: [false, false, false] },
+            stageStars: {
+                1: [false, false, false],
+                2: [false, false, false],
+                3: [false, false, false],
+                4: [false, false, false],
+                5: [false, false, false],
+                6: [false, false, false],
+                7: [false, false, false],
+                8: [false, false, false],
+                9: [false, false, false],
+                10: [false, false, false]
+            },
             coins: 50, // Starting gift coins
             equippedSkin: 'classic',
             ownedSkins: ['classic'],
@@ -35,8 +39,6 @@ class GameManager {
             ownedTrails: ['cyan'],
             upgrades: { maxHpPlus: false, dashCooldownPlus: false },
             difficulty: 'medium',
-            highWave: 1,
-            survivalHighScore: 0,
             isMuted: false,
             lang: 'ar'
         };
@@ -129,9 +131,8 @@ class GameManager {
         this.player.dashCooldown = this.saveData.upgrades.dashCooldownPlus ? 0.5 : 0.75;
     }
 
-    // ================= STAGE PROGRESSION & ENDLESS MODE =================
+    // ================= STAGE PROGRESSION =================
     startLevel(stageId) {
-        this.isEndlessMode = false;
         const levelData = window.GAME_LEVELS.find(lvl => lvl.id === stageId);
         if (!levelData) return;
 
@@ -169,115 +170,12 @@ class GameManager {
         }
     }
 
-    startEndlessMode() {
-        this.isEndlessMode = true;
-        this.currentWave = 1;
-        this.survivalScore = 0;
-        this.waveCooldownTimer = 0;
-        this.isWaveSpawning = false;
-
-        const levelData = window.GAME_LEVELS.find(lvl => lvl.id === 'endless');
-        if (!levelData) return;
-
-        this.currentStageId = 'endless';
-        this.levelTimer = 0;
-        this.coinsCollectedThisLevel = 0;
-        this.enemiesDefeated = 0;
-        this.damageTakenThisLevel = 0;
-
-        this.applyUpgradesAndCustomization();
-        this.engine.loadLevel(levelData, this.player);
-
-        const hudStageName = document.getElementById('hud-stage-name');
-        if (hudStageName) {
-            hudStageName.innerText = `♾️ الموجة 1`;
-        }
-
-        this.showScreen('NONE');
-        this.state = 'PLAYING';
-        this.spawnNextWave();
-    }
-
-    spawnNextWave() {
-        this.isWaveSpawning = false;
-        const wave = this.currentWave;
-        const enemies = [];
-
-        // Dynamic Enemy Wave Generator
-        if (wave === 1) {
-            enemies.push(new Enemy('slime', 300, 520, 160));
-            enemies.push(new Enemy('slime', 1400, 520, 160));
-            enemies.push(new Enemy('bat', 500, 240, 180));
-            enemies.push(new Enemy('bat', 1200, 240, 180));
-        } else if (wave === 2) {
-            enemies.push(new Enemy('slime', 400, 520, 200));
-            enemies.push(new Enemy('bat', 600, 220, 200));
-            enemies.push(new Enemy('imp', 260, 360, 140));
-            enemies.push(new Enemy('imp', 1460, 360, 140));
-        } else if (wave === 3) {
-            enemies.push(new Enemy('knight', 350, 500, 220));
-            enemies.push(new Enemy('knight', 1350, 500, 220));
-            enemies.push(new Enemy('imp', 800, 280, 160));
-            enemies.push(new Enemy('bat', 500, 200, 240));
-            enemies.push(new Enemy('bat', 1200, 200, 240));
-            // Heart drop reward for reaching wave 3
-            this.engine.collectibles.push(new Collectible({ x: 900, y: 520, type: 'heart' }));
-        } else if (wave === 4) {
-            enemies.push(new Enemy('turret', 200, 390));
-            enemies.push(new Enemy('turret', 1500, 390));
-            enemies.push(new Enemy('knight', 600, 500, 200));
-            enemies.push(new Enemy('knight', 1100, 500, 200));
-            enemies.push(new Enemy('imp', 900, 260, 180));
-        } else if (wave === 5) {
-            // Mini Boss Wave!
-            const boss = new Enemy('boss', 900, 340, 0, 35);
-            enemies.push(boss);
-            enemies.push(new Enemy('bat', 400, 200, 200));
-            enemies.push(new Enemy('bat', 1300, 200, 200));
-            this.engine.collectibles.push(new Collectible({ x: 440, y: 240, type: 'heart' }));
-            this.engine.collectibles.push(new Collectible({ x: 1160, y: 240, type: 'heart' }));
-        } else {
-            // Wave 6+ Scaling
-            const count = Math.min(10, 4 + Math.floor(wave * 0.7));
-            const types = ['slime', 'bat', 'imp', 'knight', 'turret'];
-            for (let i = 0; i < count; i++) {
-                const type = types[Math.floor(Math.random() * types.length)];
-                const spawnX = 200 + Math.random() * 1300;
-                const spawnY = (type === 'bat' || type === 'imp') ? 220 + Math.random() * 120 : 510;
-                const hp = (type === 'knight' || type === 'turret') ? 4 + Math.floor(wave * 0.5) : 2 + Math.floor(wave * 0.3);
-                enemies.push(new Enemy(type, spawnX, spawnY, 180, hp));
-            }
-            if (wave % 5 === 0) {
-                // Giant Boss every 5 waves
-                enemies.push(new Enemy('boss', 900, 340, 0, 40 + wave * 5));
-            }
-            if (wave % 2 === 0) {
-                this.engine.collectibles.push(new Collectible({ x: 300 + Math.random() * 1100, y: 500, type: 'heart' }));
-            }
-        }
-
-        this.engine.enemies = enemies;
-        this.showToast(`🌊 الموجة ${wave}: صُمودك يصنع المجد!`);
-        window.soundEngine.playCoin();
-        if (window.gameEngine) window.gameEngine.addScreenShake(8, 0.4);
-
-        const hudStageName = document.getElementById('hud-stage-name');
-        if (hudStageName) {
-            hudStageName.innerText = `♾️ الموجة ${wave}`;
-        }
-    }
-
     restartLevel() {
-        if (this.isEndlessMode) {
-            this.startEndlessMode();
-        } else {
-            this.startLevel(this.currentStageId);
-        }
+        this.startLevel(this.currentStageId);
     }
 
     completeLevel() {
         if (this.state !== 'PLAYING') return;
-        if (this.isEndlessMode) return; // Endless mode progresses via waves
 
         this.state = 'VICTORY';
 
@@ -303,9 +201,9 @@ class GameManager {
             prevStars[2] || this.collectedStars[2]
         ];
 
-        // Unlock next stage
+        // Unlock next stage (up to 10 stages)
         const nextStageId = this.currentStageId + 1;
-        if (nextStageId <= 9 && !this.saveData.unlockedStages.includes(nextStageId)) {
+        if (nextStageId <= 10 && !this.saveData.unlockedStages.includes(nextStageId)) {
             this.saveData.unlockedStages.push(nextStageId);
         }
 
@@ -335,7 +233,7 @@ class GameManager {
 
         const nextBtn = document.getElementById('btn-victory-next');
         if (nextBtn) {
-            if (this.currentStageId >= 9) {
+            if (this.currentStageId >= 10) {
                 nextBtn.style.display = 'none';
             } else {
                 nextBtn.style.display = 'flex';
@@ -497,15 +395,12 @@ class GameManager {
             totalStars += this.saveData.stageStars[k].filter(Boolean).length;
         }
 
-        const maxTotalStars = (window.GAME_LEVELS ? window.GAME_LEVELS.filter(lvl => lvl.id !== 'endless').length * 3 : 27);
+        const maxTotalStars = (window.GAME_LEVELS ? window.GAME_LEVELS.length * 3 : 30);
         const menuStars = document.getElementById('menu-total-stars');
         if (menuStars) menuStars.innerText = totalStars + ' / ' + maxTotalStars;
 
         const menuCoins = document.getElementById('menu-total-coins');
         if (menuCoins) menuCoins.innerText = this.saveData.coins;
-
-        const menuHighWave = document.getElementById('menu-high-wave');
-        if (menuHighWave) menuHighWave.innerText = this.saveData.highWave || 1;
 
         const stagesCoins = document.getElementById('stages-coins');
         if (stagesCoins) stagesCoins.innerText = this.saveData.coins;
@@ -576,7 +471,7 @@ class GameManager {
         if (!container) return;
         container.innerHTML = '';
 
-        const levels = (window.GAME_LEVELS || []).filter(lvl => lvl.id !== 'endless');
+        const levels = window.GAME_LEVELS || [];
         levels.forEach(lvl => {
             const isUnlocked = this.saveData.unlockedStages.includes(lvl.id);
             const stars = this.saveData.stageStars[lvl.id] || [false, false, false];
@@ -756,7 +651,6 @@ class GameManager {
     bindEvents() {
         // Main Menu Buttons
         document.getElementById('btn-menu-play').onclick = () => this.startLevel(1);
-        document.getElementById('btn-menu-survival').onclick = () => this.startEndlessMode();
         document.getElementById('btn-menu-stages').onclick = () => this.showScreen('screen-stages');
         document.getElementById('btn-menu-shop').onclick = () => this.showScreen('screen-shop');
         document.getElementById('btn-menu-how').onclick = () => this.showScreen('screen-how');
@@ -886,36 +780,6 @@ class GameManager {
             // Engine update & render
             this.engine.update(dt, this.player, window.inputController.state);
             this.engine.render(this.player);
-
-            // Endless wave progression
-            if (this.isEndlessMode && this.state === 'PLAYING') {
-                const waveCleared = (this.engine.enemies.length === 0) || this.engine.enemies.every(e => e.isDead);
-                if (waveCleared) {
-                    if (!this.isWaveSpawning) {
-                        this.isWaveSpawning = true;
-                        this.waveCooldownTimer = 1.5;
-                        this.survivalScore += this.currentWave * 250 + 100;
-                        this.addCoins(this.currentWave * 8);
-                        
-                        if (this.currentWave > (this.saveData.highWave || 1)) {
-                            this.saveData.highWave = this.currentWave;
-                        }
-                        if (this.survivalScore > (this.saveData.survivalHighScore || 0)) {
-                            this.saveData.survivalHighScore = this.survivalScore;
-                        }
-                        this.persistSaveData();
-                        window.soundEngine.playLevelClear();
-                        window.particleSystem.emitConfetti(this.engine.cameraX, this.engine.cameraY, this.engine.width, this.engine.height);
-                        this.showToast(`🎉 انتصرت في الموجة ${this.currentWave}! +${this.currentWave * 8} عملة ذهبية!`);
-                    } else {
-                        this.waveCooldownTimer -= dt;
-                        if (this.waveCooldownTimer <= 0) {
-                            this.currentWave++;
-                            this.spawnNextWave();
-                        }
-                    }
-                }
-            }
 
             // HUD update
             this.updateHUD();
