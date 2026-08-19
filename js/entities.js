@@ -26,6 +26,7 @@ class Player {
         // State Machine
         this.isGrounded = false;
         this.wasGrounded = false;
+        this.maxJumps = 2;
         this.jumpsLeft = 2;
         this.facingRight = true;
         this.state = 'idle'; // 'idle', 'run', 'jump', 'fall', 'dash', 'wall_slide', 'attack', 'hurt'
@@ -34,7 +35,7 @@ class Player {
         this.isWallSliding = false;
         this.wallDir = 0; // -1 left wall, 1 right wall
 
-        // Coyote Time & Jump Buffer for ultra-responsive platforming
+        // Coyote Time & Jump Buffer
         this.coyoteTimer = 0;
         this.coyoteMax = 0.12;
         this.jumpBufferTimer = 0;
@@ -61,15 +62,104 @@ class Player {
         this.hasHitEnemies = new Set();
         this.attackHitbox = { x: 0, y: 0, w: 0, h: 0 };
 
-        // Health & Upgrades
+        // Ultimate Finisher Meter (0 to 100%)
+        this.ultimateEnergy = 0;
+        this.isExecutingUltimate = false;
+        this.ultimateTimer = 0;
+
+        // Health & Special Character Traits
         this.maxHp = 3;
         this.hp = 3;
         this.invulnerableTimer = 0;
         this.isDead = false;
+        this.isLavaImmune = false;
+        this.isThunderLord = false;
 
         // Visual Customization
         this.skin = 'classic'; // 'classic', 'ninja', 'paladin', 'valkyrie', 'shadow'
         this.animTimer = 0;
+    }
+
+    applySkin(skinId) {
+        this.skin = skinId;
+        if (skinId === 'ninja') {
+            this.maxJumps = 3; // Triple Jump!
+            this.maxSpeed = 7.6;
+            this.dashCooldown = 0.6;
+            this.isLavaImmune = false;
+            this.isThunderLord = false;
+        } else if (skinId === 'paladin' || skinId === 'magma') {
+            this.maxJumps = 2;
+            this.maxSpeed = 6.2;
+            this.maxHp = 4;
+            this.hp = Math.max(this.hp, 4);
+            this.isLavaImmune = true; // Lava & Void Spike Immunity!
+            this.isThunderLord = false;
+            this.dashCooldown = 0.75;
+        } else if (skinId === 'valkyrie' || skinId === 'thunder') {
+            this.maxJumps = 2;
+            this.maxSpeed = 7.1;
+            this.dashCooldown = 0.42; // Fast lightning dash!
+            this.isThunderLord = true;
+            this.isLavaImmune = false;
+        } else {
+            // Classic Cosmic Knight
+            this.maxJumps = 2;
+            this.maxSpeed = 6.4;
+            this.maxHp = 3;
+            this.isLavaImmune = false;
+            this.isThunderLord = false;
+            this.dashCooldown = 0.75;
+        }
+    }
+
+    chargeUltimate(amount) {
+        this.ultimateEnergy = Math.min(100, this.ultimateEnergy + amount);
+        const bar = document.getElementById('hud-ultimate-bar');
+        const btn = document.getElementById('btn-ultimate');
+        if (bar) bar.style.width = `${this.ultimateEnergy}%`;
+        if (btn) {
+            if (this.ultimateEnergy >= 100) {
+                btn.classList.add('ready');
+                btn.classList.add('pulse-anim');
+            } else {
+                btn.classList.remove('ready');
+                btn.classList.remove('pulse-anim');
+            }
+        }
+    }
+
+    executeUltimate(gameEngine) {
+        if (this.ultimateEnergy < 100 || !gameEngine) return;
+        this.ultimateEnergy = 0;
+        this.chargeUltimate(0);
+
+        this.invulnerableTimer = 2.5;
+        this.isExecutingUltimate = true;
+        this.ultimateTimer = 1.2;
+
+        window.soundEngine.playUltimateFinisher();
+        if (navigator.vibrate) navigator.vibrate([200, 100, 300]);
+
+        gameEngine.addScreenShake(20, 1.2);
+        gameEngine.ultimateFinisherTimer = 1.4;
+
+        // Destroy all enemy projectiles
+        gameEngine.projectiles = gameEngine.projectiles.filter(p => p.owner === 'player');
+
+        // Massive Finisher Damage to all enemies on screen
+        for (let i = gameEngine.enemies.length - 1; i >= 0; i--) {
+            const e = gameEngine.enemies[i];
+            window.particleSystem.emitHitSparks(e.x + e.w * 0.5, e.y + e.h * 0.5, '#00e5ff');
+            if (e.type === 'boss') {
+                e.takeDamage(25, this);
+            } else {
+                e.takeDamage(10, this);
+            }
+        }
+
+        window.particleSystem.emitLevelClearConfetti();
+        if (window.gameManager) window.gameManager.showToast('⚔️ الضربة القاضية الكونية (Cosmic Omega Slash)!');
     }
 
     reset(x, y) {
@@ -88,14 +178,23 @@ class Player {
         this.dashCooldownTimer = 0;
         this.dashBufferTimer = 0;
         this.jumpBufferTimer = 0;
-        this.jumpsLeft = 2;
+        this.jumpsLeft = this.maxJumps || 2;
         this.hasHitEnemies.clear();
+        this.chargeUltimate(0);
     }
 
     update(dt, input, platforms, hazards, levelWidth, levelHeight) {
         if (this.isDead) return;
 
         this.animTimer += dt;
+        if (this.ultimateTimer > 0) this.ultimateTimer -= dt;
+
+        // Check Ultimate Activation (U key or Mobile Ultimate Button)
+        if (input.ultimate || input.ultimateJustPressed) {
+            if (this.ultimateEnergy >= 100 && window.gameEngine) {
+                this.executeUltimate(window.gameEngine);
+            }
+        }
 
         // ================= UPDATE ALL TIMERS =================
         if (this.invulnerableTimer > 0) this.invulnerableTimer -= dt;
@@ -109,12 +208,12 @@ class Player {
         // Check ground status for coyote time
         if (this.isGrounded) {
             this.coyoteTimer = this.coyoteMax;
-            this.jumpsLeft = 2;
+            this.jumpsLeft = this.maxJumps || 2;
         }
 
         // ================= 1. ATTACK BUFFER & EXECUTION =================
         if (input.attack || input.attackJustPressed) {
-            this.attackBufferTimer = 0.18; // Buffer attack for 0.18 seconds
+            this.attackBufferTimer = 0.18;
         }
 
         if (this.attackBufferTimer > 0 && !this.isAttacking && this.attackCooldownTimer <= 0 && !this.isDashing) {
@@ -126,11 +225,52 @@ class Player {
             this.attackCombo = (this.attackCombo % 3) + 1;
             window.soundEngine.playAttack();
 
+            this.chargeUltimate(4); // Charge ultimate meter on attack
+
             if (navigator.vibrate) navigator.vibrate(25);
+
+            // CHARACTER SPECIAL SKILLS ON ATTACK
+            const dir = this.facingRight ? 1 : -1;
+            if (this.skin === 'ninja' && window.gameEngine) {
+                // Ninja Shuriken Throw
+                window.soundEngine.playShuriken();
+                window.gameEngine.projectiles.push(new Projectile(
+                    this.facingRight ? this.x + this.w + 10 : this.x - 10,
+                    this.y + this.h * 0.45,
+                    dir * 11,
+                    0,
+                    '#00f5d4',
+                    8,
+                    'player'
+                ));
+            } else if ((this.skin === 'paladin' || this.skin === 'magma') && window.gameEngine) {
+                // Magma Shockwave
+                window.gameEngine.projectiles.push(new Projectile(
+                    this.facingRight ? this.x + this.w + 10 : this.x - 10,
+                    this.y + this.h - 10,
+                    dir * 8.5,
+                    0,
+                    '#ffb703',
+                    10,
+                    'player'
+                ));
+            } else if ((this.skin === 'valkyrie' || this.skin === 'thunder') && window.gameEngine) {
+                // Thunder Spark
+                window.soundEngine.playThunder();
+                window.gameEngine.projectiles.push(new Projectile(
+                    this.facingRight ? this.x + this.w + 10 : this.x - 10,
+                    this.y + this.h * 0.4,
+                    dir * 10,
+                    (Math.random() - 0.5) * 1.5,
+                    '#c77dff',
+                    9,
+                    'player'
+                ));
+            }
 
             // Emit sword particle arc
             const swordX = this.facingRight ? this.x + this.w + 14 : this.x - 14;
-            window.particleSystem.emitSwordSparks(swordX, this.y + this.h * 0.5, this.facingRight ? 1 : -1);
+            window.particleSystem.emitSwordSparks(swordX, this.y + this.h * 0.5, dir);
         }
 
         if (this.isAttacking) {
@@ -139,7 +279,6 @@ class Player {
                 this.isAttacking = false;
                 this.attackHitbox = { x: 0, y: 0, w: 0, h: 0 };
             } else {
-                // Generous sword slash hitbox covering ground and air
                 const reach = 54;
                 const hitboxX = this.facingRight ? (this.x + 4) : (this.x + this.w - 4 - reach);
                 this.attackHitbox = {
@@ -172,6 +311,18 @@ class Player {
             const dir = this.facingRight ? 1 : -1;
             this.vx = dir * this.dashSpeed;
             this.vy = 0;
+
+            // Thunder Lord Dash Electrocution Aura
+            if (this.isThunderLord && window.gameEngine) {
+                window.soundEngine.playThunder();
+                for (const enemy of window.gameEngine.enemies) {
+                    const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
+                    if (dist < 90) {
+                        enemy.takeDamage(2, this);
+                        window.particleSystem.emitHitSparks(enemy.x + enemy.w * 0.5, enemy.y + enemy.h * 0.5, '#c77dff');
+                    }
+                }
+            }
         }
 
         if (this.isDashing) {
@@ -184,11 +335,11 @@ class Player {
             } else {
                 this.x += this.vx * dt * 60;
                 this.handleHorizontalCollisions(platforms);
-                return; // Dash bypasses standard gravity
+                return;
             }
         }
 
-        // ================= 3. JUMP BUFFER & JUMP LOGIC =================
+        // ================= 3. JUMP BUFFER & JUMP LOGIC (TRIPLE JUMP SUPPORT) =================
         if (input.jumpJustPressed) {
             this.jumpBufferTimer = this.jumpBufferMax;
         }
@@ -200,7 +351,7 @@ class Player {
                 this.isGrounded = false;
                 this.coyoteTimer = 0;
                 this.jumpBufferTimer = 0;
-                this.jumpsLeft = 1;
+                this.jumpsLeft = (this.maxJumps || 2) - 1;
                 window.soundEngine.playJump();
                 window.particleSystem.emitJumpDust(this.x + this.w * 0.5, this.y + this.h);
                 if (navigator.vibrate) navigator.vibrate(20);
@@ -211,12 +362,12 @@ class Player {
                 this.facingRight = this.wallDir < 0;
                 this.isWallSliding = false;
                 this.jumpBufferTimer = 0;
-                this.jumpsLeft = 1;
+                this.jumpsLeft = (this.maxJumps || 2) - 1;
                 window.soundEngine.playJump();
                 window.particleSystem.emitJumpDust(this.x + this.w * 0.5, this.y + this.h * 0.5);
                 if (navigator.vibrate) navigator.vibrate(25);
             } else if (this.jumpsLeft > 0) {
-                // Double Jump
+                // Double / Triple Jump
                 this.vy = this.doubleJumpForce;
                 this.jumpsLeft--;
                 this.jumpBufferTimer = 0;
@@ -226,7 +377,7 @@ class Player {
             }
         }
 
-        // Variable Jump Height (cut velocity if jump key released early)
+        // Variable Jump Height
         if (!input.jump && this.vy < -3) {
             this.vy *= 0.65;
         }
@@ -995,6 +1146,11 @@ class Collectible {
                 window.soundEngine.playGem();
                 window.particleSystem.emitGemBurst(this.x + this.w * 0.5, this.y + this.h * 0.5, '#ffb703');
                 window.gameManager.collectLevelStar(this.starIdx);
+            } else if (this.type === 'ultimate_rune') {
+                player.chargeUltimate(100);
+                window.soundEngine.playSecretFound();
+                window.particleSystem.emitGemBurst(this.x + this.w * 0.5, this.y + this.h * 0.5, '#c77dff');
+                if (window.gameManager) window.gameManager.showToast('⚡ مخطوطة قديمة! تم شحن الضربة القاضية 100%');
             } else if (this.type === 'heart') {
                 player.heal(1);
             }
@@ -1032,6 +1188,23 @@ class Collectible {
                 ctx.lineTo(Math.cos(i * Math.PI / 2 + Math.PI / 4) * 5, Math.sin(i * Math.PI / 2 + Math.PI / 4) * 5);
             }
             ctx.closePath();
+            ctx.fill();
+        } else if (this.type === 'ultimate_rune') {
+            ctx.rotate(this.animTimer * 2);
+            ctx.fillStyle = '#c77dff';
+            ctx.shadowColor = '#00e5ff';
+            ctx.shadowBlur = 22;
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                ctx.lineTo(Math.cos(i * Math.PI / 3) * 15, Math.sin(i * Math.PI / 3) * 15);
+                ctx.lineTo(Math.cos(i * Math.PI / 3 + Math.PI / 6) * 7, Math.sin(i * Math.PI / 3 + Math.PI / 6) * 7);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(0, 0, 4, 0, Math.PI * 2);
             ctx.fill();
         }
 

@@ -137,7 +137,7 @@ class GameManager {
 
         // Unlock next stage
         const nextStageId = this.currentStageId + 1;
-        if (nextStageId <= 6 && !this.saveData.unlockedStages.includes(nextStageId)) {
+        if (nextStageId <= window.GAME_LEVELS.length && !this.saveData.unlockedStages.includes(nextStageId)) {
             this.saveData.unlockedStages.push(nextStageId);
         }
 
@@ -163,7 +163,7 @@ class GameManager {
 
         const nextBtn = document.getElementById('btn-victory-next');
         if (nextBtn) {
-            if (nextStageId > 6) {
+            if (nextStageId > window.GAME_LEVELS.length) {
                 nextBtn.style.display = 'none';
             } else {
                 nextBtn.style.display = 'flex';
@@ -203,7 +203,14 @@ class GameManager {
             this.showModal('modal-pause');
         } else if (this.state === 'PAUSED') {
             this.state = 'PLAYING';
-            this.hideModals();
+            this.hideAllModals();
+        }
+    }
+
+    resumeGame() {
+        if (this.state === 'PAUSED') {
+            this.state = 'PLAYING';
+            this.hideAllModals();
         }
     }
 
@@ -215,7 +222,7 @@ class GameManager {
             if (el) el.classList.add('hidden');
         });
 
-        this.hideModals();
+        this.hideAllModals();
 
         const hud = document.getElementById('hud-overlay');
         const touchLayer = document.getElementById('touch-controls');
@@ -233,12 +240,12 @@ class GameManager {
     }
 
     showModal(modalId) {
-        this.hideModals();
+        this.hideAllModals();
         const modal = document.getElementById(modalId);
         if (modal) modal.classList.remove('hidden');
     }
 
-    hideModals() {
+    hideAllModals() {
         const modals = ['modal-pause', 'modal-victory', 'modal-gameover'];
         modals.forEach(id => {
             const el = document.getElementById(id);
@@ -252,8 +259,9 @@ class GameManager {
             totalStars += this.saveData.stageStars[k].filter(Boolean).length;
         }
 
+        const maxTotalStars = (window.GAME_LEVELS ? window.GAME_LEVELS.length * 3 : 27);
         const menuStars = document.getElementById('menu-total-stars');
-        if (menuStars) menuStars.innerText = totalStars + ' / 18';
+        if (menuStars) menuStars.innerText = totalStars + ' / ' + maxTotalStars;
 
         const menuCoins = document.getElementById('menu-total-coins');
         if (menuCoins) menuCoins.innerText = this.saveData.coins;
@@ -265,29 +273,46 @@ class GameManager {
         if (shopCoins) shopCoins.innerText = this.saveData.coins;
     }
 
-    updateHUD() {
-        // Update Hearts
-        const heartsContainer = document.getElementById('hud-hearts');
-        if (heartsContainer) {
-            heartsContainer.innerHTML = '';
-            for (let i = 0; i < this.player.maxHp; i++) {
-                const heart = document.createElement('i');
-                heart.className = 'fa-solid fa-heart ' + (i < this.player.hp ? 'heart-active' : 'heart-empty');
-                heartsContainer.appendChild(heart);
-            }
+    showToast(msg) {
+        let toast = document.getElementById('game-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'game-toast';
+            toast.className = 'game-toast';
+            document.body.appendChild(toast);
         }
+        toast.innerText = msg;
+        toast.classList.add('visible');
+        clearTimeout(this.toastTimeout);
+        this.toastTimeout = setTimeout(() => {
+            toast.classList.remove('visible');
+        }, 2800);
+    }
 
-        // Update Dash bar
+    updateHUD() {
+        this.updateHUDHearts();
+        this.updateHUDDash();
+        this.updateHUDCoins();
+        this.updateHUDStars();
+    }
+
+    updateHUDHearts() {
+        const heartsContainer = document.getElementById('hud-hearts');
+        if (!heartsContainer) return;
+        heartsContainer.innerHTML = '';
+        const maxHearts = this.player.maxHp || 3;
+        for (let i = 0; i < maxHearts; i++) {
+            const heart = document.createElement('i');
+            heart.className = 'fa-solid fa-heart ' + (i < this.player.hp ? 'heart-active' : 'heart-empty');
+            heartsContainer.appendChild(heart);
+        }
+    }
+
+    updateHUDDash() {
         const dashBar = document.getElementById('hud-dash-bar');
         if (dashBar) {
-            const progress = this.player.dashCooldownTimer <= 0 ? 1 : 1 - (this.player.dashCooldownTimer / this.player.dashCooldown);
-            dashBar.style.width = (progress * 100) + '%';
-        }
-
-        // Update Timer
-        const timerEl = document.getElementById('hud-timer');
-        if (timerEl) {
-            timerEl.innerText = this.formatTime(this.levelTimer);
+            const progress = this.player.dashCooldownTimer <= 0 ? 100 : Math.max(0, (1 - (this.player.dashCooldownTimer / this.player.dashCooldown)) * 100);
+            dashBar.style.width = progress + '%';
         }
     }
 
@@ -337,7 +362,10 @@ class GameManager {
                 volcano: 'fa-volcano',
                 sky: 'fa-cloud-bolt',
                 cyber: 'fa-microchip',
-                boss: 'fa-dragon'
+                boss: 'fa-dragon',
+                shadow: 'fa-ghost',
+                metropolis: 'fa-city',
+                void_sanctum: 'fa-atom'
             };
 
             card.innerHTML = `
@@ -371,11 +399,11 @@ class GameManager {
 
         if (activeTab === 'skins') {
             const skins = [
-                { id: 'classic', titleAr: 'الفارس السماوي (الأصلي)', titleEn: 'Azure Knight', descAr: 'درع سماوي مع رداء أحمر متوهج', cost: 0, color: '#00b4d8' },
-                { id: 'ninja', titleAr: 'شينوبي الظلام', titleEn: 'Crimson Ninja', descAr: 'زي نينجا ياباني سريع برداء قرمزي', cost: 60, color: '#ff2e63' },
-                { id: 'paladin', titleAr: 'الفارس الذهبي المقدس', titleEn: 'Golden Paladin', descAr: 'درع ذهبي لامع يشع بالضوء', cost: 120, color: '#ffb703' },
-                { id: 'valkyrie', titleAr: 'فالكيري النيون', titleEn: 'Cyber Valkyrie', descAr: 'درع سايبراني بتقنية النبضات', cost: 180, color: '#7209b7' },
-                { id: 'shadow', titleAr: 'سيد الفراغ الأسود', titleEn: 'Shadow Assassin', descAr: 'شخصية أسطورية من ظلال الفضاء', cost: 250, color: '#10002b' }
+                { id: 'classic', titleAr: 'الفارس السماوي (الأصلي)', titleEn: 'Azure Knight', descAr: '🛡️ متوازن، تصدي بالسيف، قفز مزدوج، اندفاع كوني', cost: 0, color: '#00b4d8' },
+                { id: 'ninja', titleAr: 'النينجا السيبراني (شينوبي)', titleEn: 'Cyber Ninja', descAr: '🥷 قفزة ثلاثية (Triple Jump) + قذف نجوم الشوريكين + سرعة فائقة!', cost: 60, color: '#ff2e63' },
+                { id: 'paladin', titleAr: 'فارس الحمم الملتهبة', titleEn: 'Magma Paladin', descAr: '🌋 درع الحمم (مناعة ضد الحمم والأشواك) + 4 قلوب + موجة لهب!', cost: 120, color: '#ffb703' },
+                { id: 'valkyrie', titleAr: 'سيد البرق الفضائي', titleEn: 'Thunder Lord', descAr: '⚡ صعق الأعداء أثناء الاندفاع + صواعق رعدية + اندفاع فائق السرعة!', cost: 180, color: '#7209b7' },
+                { id: 'shadow', titleAr: 'سيد الفراغ الكوني', titleEn: 'Shadow Void Lord', descAr: '🌌 شحن سريع للضربة القاضية + هجوم شبحي وظلال فضائية!', cost: 250, color: '#10002b' }
             ];
 
             skins.forEach(item => {

@@ -28,6 +28,7 @@ class InputController {
             'Space': 'jump',
             'KeyJ': 'attack', 'KeyZ': 'attack', 'KeyX': 'attack',
             'KeyK': 'dash', 'KeyC': 'dash', 'ShiftLeft': 'dash', 'ShiftRight': 'dash',
+            'KeyU': 'ultimate', 'KeyQ': 'ultimate',
             'Escape': 'pause', 'KeyP': 'pause'
         };
 
@@ -68,6 +69,11 @@ class InputController {
                         this.state.dashJustPressed = true;
                     }
                     this.state.dash = true;
+                } else if (action === 'ultimate') {
+                    if (!this.state.ultimate) {
+                        this.state.ultimateJustPressed = true;
+                    }
+                    this.state.ultimate = true;
                 } else {
                     this.state[action] = true;
                 }
@@ -88,6 +94,8 @@ class InputController {
                     this.state.attack = false;
                 } else if (action === 'dash') {
                     this.state.dash = false;
+                } else if (action === 'ultimate') {
+                    this.state.ultimate = false;
                 } else {
                     this.state[action] = false;
                 }
@@ -309,6 +317,7 @@ class InputController {
 
         bindActionBtn('btn-attack', 'attack');
         bindActionBtn('btn-dash', 'dash');
+        bindActionBtn('btn-ultimate', 'ultimate');
     }
 
     initOrientationLock() {
@@ -342,6 +351,7 @@ class InputController {
         this.state.jumpJustPressed = false;
         this.state.attackJustPressed = false;
         this.state.dashJustPressed = false;
+        this.state.ultimateJustPressed = false;
     }
 
     reset() {

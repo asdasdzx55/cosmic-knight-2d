@@ -58,7 +58,7 @@
             <!-- In-Game Heads Up Display (HUD) -->
             <div id="hud-overlay" class="hidden">
                 <div class="hud-top-bar">
-                    <!-- Health & Energy -->
+                    <!-- Health, Energy & Ultimate -->
                     <div class="hud-group hud-health-group">
                         <div id="hud-hearts" class="hud-hearts" title="الصحة">
                             <i class="fa-solid fa-heart heart-active"></i>
@@ -67,6 +67,13 @@
                         </div>
                         <div class="hud-dash-meter-container" title="طاقة الاندفاع">
                             <div id="hud-dash-bar" class="hud-dash-bar"></div>
+                        </div>
+                        <!-- Ultimate Finisher Meter -->
+                        <div class="hud-ultimate-meter-container" title="الضربة القاضية الكونية (اضغط U / زر قاضية)">
+                            <div class="ultimate-bar-track">
+                                <div id="hud-ultimate-bar" class="hud-ultimate-bar" style="width: 0%;"></div>
+                            </div>
+                            <span class="ultimate-tag"><i class="fa-solid fa-bolt-lightning"></i></span>
                         </div>
                     </div>
 
@@ -126,7 +133,7 @@
                     </div>
                 </div>
 
-                <!-- Right: Exactly Two Big Action Buttons (ATTACK & DASH) -->
+                <!-- Right: Action Buttons (ATTACK, DASH, and ULTIMATE FINISHER) -->
                 <div class="touch-actions-duo">
                     <!-- 1. DASH Button (Amber Gold) -->
                     <button class="duo-action-btn btn-duo-dash" id="btn-dash" aria-label="اندفاع">
@@ -137,11 +144,20 @@
                         </div>
                     </button>
 
-                    <!-- 2. ATTACK Button (Crimson Ruby) -->
+                    <!-- 2. ULTIMATE FINISHER Button (Cosmic Violet - Unlocks at 100%) -->
+                    <button class="duo-action-btn btn-duo-ultimate" id="btn-ultimate" aria-label="الضربة القاضية">
+                        <div class="duo-btn-glow ring-ultimate"></div>
+                        <div class="duo-btn-content">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span class="duo-btn-text">قاضية</span>
+                        </div>
+                    </button>
+
+                    <!-- 3. ATTACK Button (Crimson Ruby) -->
                     <button class="duo-action-btn btn-duo-attack" id="btn-attack" aria-label="هجوم بالسيف">
                         <div class="duo-btn-glow ring-attack"></div>
                         <div class="duo-btn-content">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <i class="fa-solid fa-shield-halved"></i>
                             <span class="duo-btn-text">سيف</span>
                         </div>
                     </button>

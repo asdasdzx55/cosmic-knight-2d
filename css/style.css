@@ -596,6 +596,95 @@ html, body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8), 0 0 35px var(--accent-red-glow);
 }
 
+/* 3. ULTIMATE FINISHER BUTTON (Cosmic Violet / Cyan) */
+.btn-duo-ultimate {
+    width: 64px;
+    height: 64px;
+    background: radial-gradient(circle at 35% 35%, #9d4edd 0%, #3c096c 100%);
+    border: 2px solid rgba(199, 125, 255, 0.85);
+    font-size: 1.25rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 15px rgba(199, 125, 255, 0.4);
+    opacity: 0.45;
+    filter: grayscale(0.6);
+    transition: all 0.25s ease;
+}
+
+.btn-duo-ultimate.ready {
+    opacity: 1;
+    filter: grayscale(0);
+    background: radial-gradient(circle at 35% 35%, #c77dff 0%, #5a189a 100%);
+    border-color: #00e5ff;
+    box-shadow: 0 0 25px #00e5ff, 0 0 40px #c77dff;
+    animation: ultimatePulsing 1.2s infinite ease-in-out;
+}
+
+@keyframes ultimatePulsing {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 20px #00e5ff, 0 0 35px #c77dff; }
+    50% { transform: scale(1.08); box-shadow: 0 0 30px #00e5ff, 0 0 50px #ff0054; }
+}
+
+.btn-duo-ultimate:active, .btn-duo-ultimate.active {
+    transform: scale(0.92);
+}
+
+/* Ultimate Meter HUD */
+.hud-ultimate-meter-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.45);
+    padding: 3px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(199, 125, 255, 0.35);
+}
+
+.ultimate-bar-track {
+    width: 54px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.hud-ultimate-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #9d4edd, #00e5ff);
+    box-shadow: 0 0 10px #00e5ff;
+    transition: width 0.2s ease-out;
+}
+
+.ultimate-tag {
+    font-size: 0.75rem;
+    color: #00e5ff;
+    filter: drop-shadow(0 0 6px #00e5ff);
+}
+
+/* In-Game Notification Toast */
+.game-toast {
+    position: fixed;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-60px);
+    background: rgba(10, 15, 30, 0.94);
+    border: 1px solid var(--primary);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px var(--primary-glow);
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    direction: rtl;
+}
+
+.game-toast.visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
 /* ================= DEVELOPER CREDIT BADGE ================= */
 .developer-credit-tag {
     margin: 8px 0;

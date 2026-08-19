@@ -129,6 +129,20 @@ class GameEngine {
         // ================= 2. UPDATE PLAYER =================
         player.update(dt, input, this.platforms, this.hazards, this.currentLevel.width, this.currentLevel.height);
 
+        // ================= 2.5 SECRET WALLS CHECK =================
+        for (const p of this.platforms) {
+            if (p.type === 'secret_wall' && !p.dissolved) {
+                const near = player.rectIntersect(player, { x: p.x - 28, y: p.y - 20, w: p.w + 56, h: p.h + 40 });
+                if (near && (player.isAttacking || player.isDashing)) {
+                    p.dissolved = true;
+                    window.soundEngine.playSecretFound();
+                    window.particleSystem.emitBossExplosion(p.x + p.w * 0.5, p.y + p.h * 0.5, p.w, p.h);
+                    player.chargeUltimate(45);
+                    if (window.gameManager) window.gameManager.showToast('✨ ممر سري! تم اكتشاف غرفة خفية');
+                }
+            }
+        }
+
         // ================= 3. UPDATE CHECKPOINTS =================
         for (const cp of this.checkpoints) {
             if (!cp.activated && player.rectIntersect(player, cp)) {
@@ -146,6 +160,7 @@ class GameEngine {
             if (enemy.isDead && enemy.type !== 'boss') {
                 window.gameManager.addScore(enemy.scoreVal);
                 window.gameManager.enemiesDefeated++;
+                player.chargeUltimate(12);
                 this.enemies.splice(i, 1);
             }
         }
@@ -168,6 +183,19 @@ class GameEngine {
         for (let i = this.projectiles.length - 1; i >= 0; i--) {
             const proj = this.projectiles[i];
             proj.update(dt, player, this.platforms);
+
+            // Player Projectiles hitting enemies
+            if (proj.owner === 'player') {
+                for (const enemy of this.enemies) {
+                    if (!enemy.isDead && player.rectIntersect(proj, enemy)) {
+                        enemy.takeDamage(1, player);
+                        proj.isDead = true;
+                        window.particleSystem.emitHitSparks(proj.x, proj.y, proj.color);
+                        break;
+                    }
+                }
+            }
+
             if (proj.isDead) {
                 this.projectiles.splice(i, 1);
             }
@@ -258,6 +286,30 @@ class GameEngine {
 
         // 10. Particles & Ambient Weather
         window.particleSystem.draw(this.ctx, renderCamX, renderCamY);
+
+        // 11. ULTIMATE FINISHER CINEMATIC OVERLAY
+        if (this.ultimateFinisherTimer > 0) {
+            this.ultimateFinisherTimer -= 0.016;
+            this.ctx.save();
+            this.ctx.fillStyle = 'rgba(0, 229, 255, 0.25)';
+            this.ctx.fillRect(0, 0, this.width, this.height);
+
+            this.ctx.strokeStyle = '#ffffff';
+            this.ctx.lineWidth = 6;
+            this.ctx.shadowColor = '#00e5ff';
+            this.ctx.shadowBlur = 30;
+
+            const progress = (1.4 - this.ultimateFinisherTimer) / 1.4;
+            const slashOffset = progress * this.width * 1.5;
+
+            for (let i = 0; i < 4; i++) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(slashOffset - 200 * i, 0);
+                this.ctx.lineTo(slashOffset + 400 - 200 * i, this.height);
+                this.ctx.stroke();
+            }
+            this.ctx.restore();
+        }
     }
 
     drawParallaxBg(camX, camY) {
@@ -299,6 +351,7 @@ class GameEngine {
     drawPlatforms(camX, camY) {
         for (const p of this.platforms) {
             if (p.broken) continue;
+            if (p.type === 'secret_wall' && p.dissolved) continue;
 
             const rx = Math.round(p.x - camX);
             const ry = Math.round(p.y - camY + (p.shaking ? (Math.random() - 0.5) * 4 : 0));
@@ -309,7 +362,7 @@ class GameEngine {
 
             if (p.type === 'bounce') {
                 const squash = p.squashTimer > 0 ? 6 : 0;
-                this.ctx.fillStyle = p.style === 'mushroom' ? '#e63946' : '#00e5ff';
+                this.ctx.fillStyle = p.style === 'mushroom' ? '#e63946' : (p.style === 'void_bounce' ? '#9d4edd' : '#00e5ff');
                 this.ctx.shadowColor = this.ctx.fillStyle;
                 this.ctx.shadowBlur = 10;
                 this.ctx.beginPath();
@@ -322,6 +375,18 @@ class GameEngine {
                 this.ctx.arc(rx + 10, ry + 12 + squash, 3, 0, Math.PI * 2);
                 this.ctx.arc(rx + p.w - 10, ry + 12 + squash, 3, 0, Math.PI * 2);
                 this.ctx.fill();
+            } else if (p.type === 'secret_wall') {
+                this.ctx.fillStyle = '#100c24';
+                this.ctx.fillRect(rx, ry, p.w, p.h);
+                this.ctx.strokeStyle = '#c77dff';
+                this.ctx.lineWidth = 2;
+                this.ctx.shadowColor = '#00e5ff';
+                this.ctx.shadowBlur = 12;
+                this.ctx.strokeRect(rx, ry, p.w, p.h);
+
+                this.ctx.fillStyle = '#00e5ff';
+                this.ctx.font = '16px sans-serif';
+                this.ctx.fillText('✨', rx + p.w * 0.5 - 8, ry + p.h * 0.5 + 6);
             } else if (p.style === 'grass') {
                 this.ctx.fillStyle = '#1c2541';
                 this.ctx.fillRect(rx, ry + 8, p.w, p.h - 8);
@@ -351,14 +416,14 @@ class GameEngine {
                 this.ctx.shadowColor = '#ff5400';
                 this.ctx.shadowBlur = 10;
                 this.ctx.fillRect(rx, ry, p.w, 4);
-            } else if (p.style === 'sky_marble') {
-                this.ctx.fillStyle = '#334155';
+            } else if (p.style === 'shadow_stone') {
+                this.ctx.fillStyle = '#0c001f';
                 this.ctx.fillRect(rx, ry, p.w, p.h);
-                this.ctx.fillStyle = '#f8fafc';
-                this.ctx.fillRect(rx, ry, p.w, 5);
-                this.ctx.fillStyle = '#ffb703';
-                this.ctx.fillRect(rx, ry + 5, p.w, 2);
-            } else if (p.style === 'cyber_grid' || p.style === 'boss_platform' || p.style === 'boss_floor') {
+                this.ctx.fillStyle = '#9d4edd';
+                this.ctx.shadowColor = '#9d4edd';
+                this.ctx.shadowBlur = 8;
+                this.ctx.fillRect(rx, ry, p.w, 4);
+            } else if (p.style === 'cyber_tower' || p.style === 'cyber_grid' || p.style === 'boss_platform' || p.style === 'boss_floor') {
                 this.ctx.fillStyle = '#090d16';
                 this.ctx.fillRect(rx, ry, p.w, p.h);
                 this.ctx.strokeStyle = '#00e5ff';
@@ -366,7 +431,15 @@ class GameEngine {
                 this.ctx.shadowColor = '#00e5ff';
                 this.ctx.shadowBlur = 8;
                 this.ctx.strokeRect(rx, ry, p.w, p.h);
-            } else if (p.style === 'crumble') {
+            } else if (p.style === 'void_floor' || p.style === 'void_platform') {
+                this.ctx.fillStyle = '#05000e';
+                this.ctx.fillRect(rx, ry, p.w, p.h);
+                this.ctx.strokeStyle = '#ff0054';
+                this.ctx.lineWidth = 2;
+                this.ctx.shadowColor = '#ff0054';
+                this.ctx.shadowBlur = 12;
+                this.ctx.strokeRect(rx, ry, p.w, p.h);
+            } else if (p.style === 'crumble' || p.style === 'shadow_crumble' || p.style === 'cyber_crumble') {
                 this.ctx.fillStyle = p.shaking ? '#ef4444' : '#78716c';
                 this.ctx.fillRect(rx, ry, p.w, p.h);
                 this.ctx.fillStyle = '#a8a29e';

@@ -426,7 +426,187 @@ const GAME_LEVELS = [
             { type: 'boss', x: 800, y: 380, maxHp: 50 }
         ],
         exit: { x: 1480, y: 470, w: 60, h: 90, lockedUntilBossDead: true }
+    },
+
+    // ==========================================
+    // STAGE 7: SHADOW REALM (بُعد الظلال - مسارات سرية)
+    // ==========================================
+    {
+        id: 7,
+        titleAr: "بُعد الظلال",
+        titleEn: "Shadow Realm",
+        biome: "shadow",
+        targetTime: 90,
+        width: 3200,
+        height: 800,
+        spawn: { x: 80, y: 520 },
+        bgGradient: ['#050014', '#150030', '#2d004d'],
+        platforms: [
+            { x: 0, y: 600, w: 400, h: 200, type: 'solid', style: 'shadow_stone' },
+            { x: 340, y: 470, w: 120, h: 24, type: 'crumble', style: 'shadow_crumble' },
+            { x: 530, y: 380, w: 140, h: 24, type: 'solid', style: 'shadow_stone' },
+
+            // Secret Wall hiding the Ultimate Finisher Chamber
+            { x: 750, y: 220, w: 60, h: 180, type: 'secret_wall', style: 'shadow_secret' },
+            // Inside Secret Chamber
+            { x: 810, y: 340, w: 280, h: 30, type: 'solid', style: 'shadow_stone' },
+            { x: 810, y: 180, w: 280, h: 30, type: 'solid', style: 'shadow_stone' },
+
+            // Main Route
+            { x: 720, y: 540, w: 200, h: 260, type: 'solid', style: 'shadow_stone' },
+            { x: 990, y: 460, w: 150, h: 24, type: 'moving', vx: 2.2, rangeX: 180, startX: 990, style: 'shadow_stone' },
+            { x: 1350, y: 360, w: 120, h: 24, type: 'crumble', style: 'shadow_crumble' },
+            { x: 1550, y: 480, w: 300, h: 320, type: 'solid', style: 'shadow_stone' },
+            { x: 1920, y: 390, w: 130, h: 24, type: 'moving', vx: -2, rangeX: 160, startX: 1920, style: 'shadow_stone' },
+            { x: 2150, y: 280, w: 140, h: 24, type: 'solid', style: 'shadow_stone' },
+            { x: 2360, y: 390, w: 110, h: 24, type: 'bounce', bounceForce: -19, style: 'shadow_bounce' },
+            { x: 2550, y: 260, w: 160, h: 24, type: 'solid', style: 'shadow_stone' },
+            { x: 2800, y: 480, w: 400, h: 320, type: 'solid', style: 'shadow_stone' }
+        ],
+        hazards: [
+            { x: 400, y: 720, w: 320, h: 80, type: 'void_spikes' },
+            { x: 920, y: 720, w: 630, h: 80, type: 'void_spikes' },
+            { x: 1850, y: 720, w: 950, h: 80, type: 'void_spikes' }
+        ],
+        collectibles: [
+            { x: 220, y: 400, type: 'coin', val: 5 },
+            { x: 580, y: 320, type: 'coin', val: 5 },
+            // Inside Secret Chamber: Ultimate Rune + Gold Cache + Star 1
+            { x: 900, y: 280, type: 'ultimate_rune' },
+            { x: 960, y: 280, type: 'coin', val: 20 },
+            { x: 1020, y: 280, type: 'star_gem', starIdx: 1 },
+
+            { x: 1400, y: 300, type: 'coin', val: 5 },
+            { x: 1680, y: 420, type: 'star_gem', starIdx: 2 },
+            { x: 2200, y: 220, type: 'coin', val: 10 },
+            { x: 2620, y: 200, type: 'star_gem', starIdx: 3 }
+        ],
+        checkpoints: [
+            { x: 1650, y: 400, w: 40, h: 80, activated: false }
+        ],
+        enemies: [
+            { type: 'bat', x: 480, y: 300, rangeX: 140 },
+            { type: 'knight', x: 780, y: 490, rangeX: 90 },
+            { type: 'imp', x: 1420, y: 280, rangeX: 120 },
+            { type: 'turret', x: 1720, y: 440 },
+            { type: 'bat', x: 2000, y: 260, rangeX: 180 },
+            { type: 'knight', x: 2900, y: 430, rangeX: 80 }
+        ],
+        exit: { x: 3050, y: 390, w: 60, h: 90 }
+    },
+
+    // ==========================================
+    // STAGE 8: NEON CYBER METROPOLIS (المدينة السيبرانية)
+    // ==========================================
+    {
+        id: 8,
+        titleAr: "المدينة السيبرانية",
+        titleEn: "Neon Cyber Metropolis",
+        biome: "metropolis",
+        targetTime: 100,
+        width: 3600,
+        height: 800,
+        spawn: { x: 80, y: 520 },
+        bgGradient: ['#020b14', '#002b47', '#005f73'],
+        platforms: [
+            { x: 0, y: 600, w: 380, h: 200, type: 'solid', style: 'cyber_tower' },
+            { x: 320, y: 470, w: 130, h: 24, type: 'solid', style: 'cyber_tower' },
+            { x: 520, y: 360, w: 140, h: 24, type: 'bounce', bounceForce: -19, style: 'cyber_bounce' },
+            { x: 740, y: 260, w: 180, h: 24, type: 'moving', vx: 2.5, rangeX: 200, startX: 740, style: 'cyber_tower' },
+
+            // Secret rooftop passage
+            { x: 1000, y: 150, w: 60, h: 140, type: 'secret_wall', style: 'cyber_secret' },
+            { x: 1060, y: 180, w: 260, h: 24, type: 'solid', style: 'cyber_tower' },
+
+            { x: 1200, y: 520, w: 320, h: 280, type: 'solid', style: 'cyber_tower' },
+            { x: 1600, y: 420, w: 140, h: 24, type: 'moving', vx: -2, rangeX: 180, startX: 1600, style: 'cyber_tower' },
+            { x: 1850, y: 310, w: 130, h: 24, type: 'crumble', style: 'cyber_crumble' },
+            { x: 2060, y: 420, w: 130, h: 24, type: 'bounce', bounceForce: -20, style: 'cyber_bounce' },
+            { x: 2280, y: 260, w: 200, h: 24, type: 'solid', style: 'cyber_tower' },
+            { x: 2560, y: 360, w: 140, h: 24, type: 'moving', vx: 2.2, rangeX: 160, startX: 2560, style: 'cyber_tower' },
+            { x: 2800, y: 480, w: 180, h: 24, type: 'crumble', style: 'cyber_crumble' },
+            { x: 3100, y: 560, w: 500, h: 240, type: 'solid', style: 'cyber_tower' }
+        ],
+        hazards: [
+            { x: 380, y: 720, w: 820, h: 80, type: 'laser_pit' },
+            { x: 1520, y: 720, w: 1580, h: 80, type: 'laser_pit' },
+            { x: 1300, y: 380, w: 24, h: 140, type: 'laser' }
+        ],
+        collectibles: [
+            { x: 220, y: 400, type: 'coin', val: 5 },
+            { x: 600, y: 220, type: 'coin', val: 10 },
+            // Rooftop Secret: Star 1 + Ultimate Rune
+            { x: 1120, y: 120, type: 'ultimate_rune' },
+            { x: 1180, y: 120, type: 'star_gem', starIdx: 1 },
+
+            { x: 1350, y: 460, type: 'coin', val: 10 },
+            { x: 1900, y: 250, type: 'star_gem', starIdx: 2 },
+            { x: 2360, y: 200, type: 'coin', val: 10 },
+            { x: 2900, y: 420, type: 'star_gem', starIdx: 3 }
+        ],
+        checkpoints: [
+            { x: 1300, y: 440, w: 40, h: 80, activated: false }
+        ],
+        enemies: [
+            { type: 'turret', x: 360, y: 430 },
+            { type: 'imp', x: 800, y: 190, rangeX: 140 },
+            { type: 'knight', x: 1320, y: 470, rangeX: 100 },
+            { type: 'turret', x: 2350, y: 220 },
+            { type: 'bat', x: 2700, y: 280, rangeX: 160 },
+            { type: 'knight', x: 3250, y: 510, rangeX: 120 }
+        ],
+        exit: { x: 3450, y: 470, w: 60, h: 90 }
+    },
+
+    // ==========================================
+    // STAGE 9: SANCTUM OF THE COSMIC VOID (محراب الفراغ الكوني - الزعيم الأسطوري)
+    // ==========================================
+    {
+        id: 9,
+        titleAr: "محراب الفراغ الكوني",
+        titleEn: "Sanctum of the Void",
+        biome: "void_sanctum",
+        targetTime: 150,
+        width: 1800,
+        height: 750,
+        spawn: { x: 120, y: 520 },
+        bgGradient: ['#000000', '#0a0017', '#1a0033'],
+        platforms: [
+            // Grand Arena floor
+            { x: 0, y: 600, w: 1800, h: 150, type: 'solid', style: 'void_floor' },
+            // Left floating battle dais
+            { x: 180, y: 440, w: 160, h: 24, type: 'solid', style: 'void_platform' },
+            { x: 230, y: 416, w: 48, h: 24, type: 'bounce', bounceForce: -19, style: 'void_bounce' },
+
+            // High Center Celestial Altar
+            { x: 500, y: 300, w: 260, h: 24, type: 'solid', style: 'void_platform' },
+            { x: 1040, y: 300, w: 260, h: 24, type: 'solid', style: 'void_platform' },
+
+            // Right floating battle dais
+            { x: 1460, y: 440, w: 160, h: 24, type: 'solid', style: 'void_platform' },
+            { x: 1510, y: 416, w: 48, h: 24, type: 'bounce', bounceForce: -19, style: 'void_bounce' }
+        ],
+        hazards: [
+            { x: 0, y: 150, w: 24, h: 450, type: 'void_laser' },
+            { x: 1776, y: 150, w: 24, h: 450, type: 'void_laser' }
+        ],
+        collectibles: [
+            { x: 560, y: 240, type: 'coin', val: 20 },
+            { x: 640, y: 240, type: 'ultimate_rune' },
+            { x: 1100, y: 240, type: 'ultimate_rune' },
+            { x: 1180, y: 240, type: 'coin', val: 20 },
+            // Void Trophy Stars
+            { x: 630, y: 140, type: 'star_gem', starIdx: 1 },
+            { x: 900, y: 110, type: 'star_gem', starIdx: 2 },
+            { x: 1170, y: 140, type: 'star_gem', starIdx: 3 }
+        ],
+        checkpoints: [],
+        enemies: [
+            { type: 'boss', x: 900, y: 380, maxHp: 70, isVoidLord: true }
+        ],
+        exit: { x: 1660, y: 510, w: 60, h: 90, lockedUntilBossDead: true }
     }
 ];
 
 window.GAME_LEVELS = GAME_LEVELS;
+

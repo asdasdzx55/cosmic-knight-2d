@@ -217,6 +217,120 @@ class SoundEngine {
         });
     }
 
+    playSecretFound() {
+        if (this.isMuted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [440, 554.37, 659.25, 880, 1108.73, 1318.51]; // Mystical Arpeggio
+        notes.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const t = now + idx * 0.06;
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, t);
+
+            gain.gain.setValueAtTime(0.25 * this.sfxVolume, t);
+            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(t);
+            osc.stop(t + 0.26);
+        });
+    }
+
+    playUltimateFinisher() {
+        if (this.isMuted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        // 1. Sub-bass build-up
+        const subOsc = this.ctx.createOscillator();
+        const subGain = this.ctx.createGain();
+        subOsc.type = 'sine';
+        subOsc.frequency.setValueAtTime(80, now);
+        subOsc.frequency.exponentialRampToValueAtTime(30, now + 0.8);
+        subGain.gain.setValueAtTime(0.6 * this.sfxVolume, now);
+        subGain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+        subOsc.connect(subGain);
+        subGain.connect(this.ctx.destination);
+        subOsc.start(now);
+        subOsc.stop(now + 0.85);
+
+        // 2. Rising Celestial Chord
+        [440, 659.25, 880, 1318.51].forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq * 0.5, now);
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.4);
+            gain.gain.setValueAtTime(0.12 * this.sfxVolume, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.04);
+            osc.stop(now + 0.65);
+        });
+
+        // 3. Huge explosive impact
+        setTimeout(() => {
+            if (!this.ctx) return;
+            const hitNow = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(140, hitNow);
+            osc.frequency.exponentialRampToValueAtTime(35, hitNow + 0.5);
+            gain.gain.setValueAtTime(0.7 * this.sfxVolume, hitNow);
+            gain.gain.exponentialRampToValueAtTime(0.01, hitNow + 0.5);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(hitNow);
+            osc.stop(hitNow + 0.55);
+        }, 300);
+    }
+
+    playShuriken() {
+        if (this.isMuted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(850, now);
+        osc.frequency.exponentialRampToValueAtTime(300, now + 0.08);
+
+        gain.gain.setValueAtTime(0.18 * this.sfxVolume, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.09);
+    }
+
+    playThunder() {
+        if (this.isMuted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.setValueAtTime(600, now + 0.03);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.18);
+
+        gain.gain.setValueAtTime(0.35 * this.sfxVolume, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.2);
+    }
+
     playHurt() {
         if (this.isMuted || !this.ctx) return;
         const now = this.ctx.currentTime;
