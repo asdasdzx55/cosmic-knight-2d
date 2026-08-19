@@ -309,8 +309,10 @@ class DialogueManager {
     }
 
     startDialogue(dialogueKey, onComplete) {
+        if (!this.overlay) this.init();
+
         const dialogueList = GAME_DIALOGUES[dialogueKey];
-        if (!dialogueList || dialogueList.length === 0) {
+        if (!dialogueList || dialogueList.length === 0 || !this.overlay) {
             if (onComplete) onComplete();
             return;
         }
@@ -319,7 +321,7 @@ class DialogueManager {
         this.currentIndex = 0;
         this.onCompleteCallback = onComplete;
 
-        if (this.overlay) this.overlay.classList.remove('hidden');
+        this.overlay.classList.remove('hidden');
 
         // Hide touch controls during dialogue
         const touchLayer = document.getElementById('touch-controls');
@@ -394,6 +396,11 @@ class DialogueManager {
         if (this.overlay) this.overlay.classList.add('hidden');
         this.currentDialogue = null;
         this.currentIndex = 0;
+
+        const touchLayer = document.getElementById('touch-controls');
+        if (touchLayer && window.gameManager && window.gameManager.state !== 'MENU') {
+            touchLayer.style.display = 'flex';
+        }
 
         if (this.onCompleteCallback) {
             const cb = this.onCompleteCallback;
