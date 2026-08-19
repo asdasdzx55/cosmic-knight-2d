@@ -655,6 +655,8 @@ class Player {
 
             // Glowing Sword Blade
             ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = palette.glow;
+            ctx.shadowBlur = 18;
             ctx.fillRect(0, -5, 34, 8);
 
             // Sword Guard & Hilt
@@ -666,6 +668,8 @@ class Player {
             ctx.save();
             ctx.strokeStyle = palette.glow;
             ctx.lineWidth = 5;
+            ctx.shadowColor = palette.glow;
+            ctx.shadowBlur = 22;
             ctx.beginPath();
             ctx.arc(12, 0, 38, -Math.PI * 0.4, Math.PI * 0.4);
             ctx.stroke();
@@ -1040,12 +1044,14 @@ class Enemy {
         if (!this.facingRight) ctx.scale(-1, 1);
 
         if (this.hurtTimer > 0) {
-            ctx.globalAlpha = 0.6;
+            ctx.filter = 'brightness(2.2) contrast(1.5)';
         }
 
         if (this.type === 'slime') {
             const squash = Math.sin(this.animTimer * 8) * 3;
             ctx.fillStyle = this.color;
+            ctx.shadowColor = this.color;
+            ctx.shadowBlur = 8;
             ctx.beginPath();
             ctx.ellipse(0, 4 - squash * 0.5, 16 + squash, 10 - squash, 0, 0, Math.PI * 2);
             ctx.fill();
@@ -1060,6 +1066,8 @@ class Enemy {
         } else if (this.type === 'bat') {
             const wingFlap = Math.sin(this.animTimer * 16) * 12;
             ctx.fillStyle = this.color;
+            ctx.shadowColor = this.color;
+            ctx.shadowBlur = 10;
             ctx.beginPath();
             ctx.arc(0, 0, 9, 0, Math.PI * 2);
             ctx.fill();
@@ -1079,6 +1087,8 @@ class Enemy {
             ctx.fillStyle = '#334155';
             ctx.fillRect(-12, -20, 24, 38);
             ctx.fillStyle = '#e63946';
+            ctx.shadowColor = '#e63946';
+            ctx.shadowBlur = 8;
             ctx.fillRect(4, -14, 10, 28);
             ctx.fillStyle = '#ffb703';
             ctx.fillRect(0, -16, 6, 4);
@@ -1086,47 +1096,96 @@ class Enemy {
             ctx.fillStyle = '#1e293b';
             ctx.fillRect(-14, -14, 28, 28);
             ctx.fillStyle = '#00e5ff';
+            ctx.shadowColor = '#00e5ff';
+            ctx.shadowBlur = 12;
             ctx.beginPath();
             ctx.arc(0, 0, 8, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#ff0054';
-            ctx.fillRect(this.facingRight ? 4 : -14, -3, 10, 6);
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(6, -4, 14, 8);
         } else if (this.type === 'imp') {
-            ctx.fillStyle = this.color;
-            ctx.fillRect(-10, -14, 20, 26);
+            ctx.fillStyle = '#ff5400';
+            ctx.shadowColor = '#ff5400';
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.arc(0, 0, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ffbd00';
+            ctx.fillRect(-8, -16, 4, 8);
+            ctx.fillRect(4, -16, 4, 8);
+        } else if (this.type === 'boss') {
+            // THE ANCIENT COSMIC DRAGON (التنين الكوني الأسطوري)
+            const wingFlap = Math.sin(this.bossTimer * 6) * 18;
+            const coreColor = this.phase === 3 ? '#ff0054' : (this.phase === 2 ? '#ffb703' : '#9d4edd');
+
+            // 1. Dragon Wings
+            ctx.fillStyle = this.phase === 3 ? '#7a001e' : '#3d0859';
+            ctx.strokeStyle = coreColor;
+            ctx.lineWidth = 3;
+            ctx.shadowColor = coreColor;
+            ctx.shadowBlur = 15;
+
+            // Left Wing
+            ctx.beginPath();
+            ctx.moveTo(-20, -10);
+            ctx.quadraticCurveTo(-70, -60 + wingFlap, -95, -20 + wingFlap);
+            ctx.lineTo(-65, 10);
+            ctx.lineTo(-40, 20);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Right Wing
+            ctx.beginPath();
+            ctx.moveTo(20, -10);
+            ctx.quadraticCurveTo(70, -60 + wingFlap, 95, -20 + wingFlap);
+            ctx.lineTo(65, 10);
+            ctx.lineTo(40, 20);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // 2. Dragon Main Body
+            ctx.fillStyle = '#12001c';
+            ctx.strokeStyle = coreColor;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 36, 48, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Dragon Glowing Core / Chest
+            ctx.fillStyle = coreColor;
+            ctx.shadowColor = coreColor;
+            ctx.shadowBlur = 24;
+            ctx.beginPath();
+            ctx.arc(0, 4, 14, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 3. Dragon Head & Horns
+            ctx.fillStyle = '#1c0326';
+            ctx.beginPath();
+            ctx.ellipse(0, -38, 22, 18, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
             // Horns
             ctx.fillStyle = '#ffb703';
             ctx.beginPath();
-            ctx.moveTo(-8, -14); ctx.lineTo(-12, -22); ctx.lineTo(-4, -14);
-            ctx.moveTo(8, -14); ctx.lineTo(12, -22); ctx.lineTo(4, -14);
-            ctx.fill();
-            // Eyes
-            ctx.fillStyle = '#ff0054';
-            ctx.fillRect(2, -8, 3, 4);
-            ctx.fillRect(6, -8, 3, 4);
-        } else if (this.type === 'boss') {
-            // Boss Dragon Body & Wings
-            const hover = Math.sin(this.animTimer * 3) * 6;
-            ctx.fillStyle = '#4a0e17';
-            ctx.fillRect(-35, -35 + hover, 70, 60);
-
-            // Glowing Core
-            ctx.fillStyle = this.phase === 3 ? '#ffffff' : (this.phase === 2 ? '#ffb703' : '#ff0054');
-            ctx.beginPath();
-            ctx.arc(0, -5 + hover, 14, 0, Math.PI * 2);
+            ctx.moveTo(-12, -45);
+            ctx.lineTo(-24, -70);
+            ctx.lineTo(-6, -50);
+            ctx.moveTo(12, -45);
+            ctx.lineTo(24, -70);
+            ctx.lineTo(6, -50);
             ctx.fill();
 
-            // Dragon Horns
-            ctx.fillStyle = '#ffb703';
-            ctx.beginPath();
-            ctx.moveTo(-20, -35 + hover); ctx.lineTo(-30, -55 + hover); ctx.lineTo(-10, -35 + hover);
-            ctx.moveTo(20, -35 + hover); ctx.lineTo(30, -55 + hover); ctx.lineTo(10, -35 + hover);
-            ctx.fill();
-
-            // Eyes
+            // Glowing Dragon Eyes
             ctx.fillStyle = '#00e5ff';
-            ctx.fillRect(-15, -25 + hover, 8, 5);
-            ctx.fillRect(7, -25 + hover, 8, 5);
+            ctx.shadowColor = '#00e5ff';
+            ctx.shadowBlur = 10;
+            ctx.fillRect(-10, -42, 6, 6);
+            ctx.fillRect(4, -42, 6, 6);
         }
 
         ctx.restore();
@@ -1270,6 +1329,8 @@ class Collectible {
             const scaleX = Math.cos(this.animTimer * 5);
             ctx.scale(scaleX, 1);
             ctx.fillStyle = '#ffb703';
+            ctx.shadowColor = '#ffb703';
+            ctx.shadowBlur = 8;
             ctx.beginPath();
             ctx.arc(0, 0, 9, 0, Math.PI * 2);
             ctx.fill();
@@ -1278,6 +1339,8 @@ class Collectible {
         } else if (this.type === 'star_gem') {
             ctx.rotate(this.animTimer * 1.5);
             ctx.fillStyle = '#ffb703';
+            ctx.shadowColor = '#ffb703';
+            ctx.shadowBlur = 18;
             ctx.beginPath();
             for (let i = 0; i < 4; i++) {
                 ctx.lineTo(Math.cos(i * Math.PI / 2) * 14, Math.sin(i * Math.PI / 2) * 14);
@@ -1288,6 +1351,8 @@ class Collectible {
         } else if (this.type === 'ultimate_rune') {
             ctx.rotate(this.animTimer * 2);
             ctx.fillStyle = '#c77dff';
+            ctx.shadowColor = '#00e5ff';
+            ctx.shadowBlur = 22;
             ctx.beginPath();
             for (let i = 0; i < 6; i++) {
                 ctx.lineTo(Math.cos(i * Math.PI / 3) * 15, Math.sin(i * Math.PI / 3) * 15);
@@ -1304,6 +1369,8 @@ class Collectible {
             const beat = 1 + Math.sin(this.animTimer * 6) * 0.15;
             ctx.scale(beat, beat);
             ctx.fillStyle = '#ff2e63';
+            ctx.shadowColor = '#ff2e63';
+            ctx.shadowBlur = 18;
             ctx.beginPath();
             ctx.moveTo(0, 5);
             ctx.bezierCurveTo(-12, -6, -14, -14, -7, -14);
@@ -1313,7 +1380,7 @@ class Collectible {
             ctx.fill();
 
             // Specular shine on heart
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             ctx.beginPath();
             ctx.arc(-4, -9, 2.5, 0, Math.PI * 2);
             ctx.fill();

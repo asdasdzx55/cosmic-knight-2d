@@ -26,6 +26,9 @@
     <!-- FontAwesome for Game Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
+    <!-- Google AdSense (ca-pub-1911478411926834) -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1911478411926834" crossorigin="anonymous"></script>
+
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -185,9 +188,8 @@
                     </div>
 
                     <div class="menu-stats-pill">
-                        <span><i class="fa-solid fa-star gold-text"></i> <span id="menu-total-stars">0 / 30</span></span>
+                        <span><i class="fa-solid fa-star gold-text"></i> <span id="menu-total-stars">0/18</span></span>
                         <span><i class="fa-solid fa-coins gold-coin-icon"></i> <span id="menu-total-coins">0</span></span>
-                        <span><i class="fa-solid fa-map"></i> 10 مراحل</span>
                     </div>
 
                     <!-- DIFFICULTY SELECTOR -->
@@ -218,12 +220,12 @@
                     <div class="menu-actions">
                         <button id="btn-menu-play" class="glow-btn primary-btn pulse-anim">
                             <i class="fa-solid fa-play"></i>
-                            <span>بدء مغامرة القصة</span>
+                            <span>بدء المغامرة</span>
                         </button>
                         <div class="menu-sub-actions-row">
                             <button id="btn-menu-stages" class="glow-btn secondary-btn">
                                 <i class="fa-solid fa-map-location-dot"></i>
-                                <span>المراحل (10 مراحل)</span>
+                                <span>المراحل</span>
                             </button>
                             <button id="btn-menu-shop" class="glow-btn secondary-btn">
                                 <i class="fa-solid fa-store"></i>
@@ -432,52 +434,14 @@
                 </div>
 
                 <div class="modal-actions">
-                    <button id="btn-gameover-ad-revive" class="glow-btn ad-revive-btn pulse-anim">
-                        <i class="fa-solid fa-film"></i> مشاهدة إعلان للإحياء فوراً 💖 (+3 قلوب)
-                    </button>
-                    <button id="btn-gameover-retry" class="glow-btn primary-btn">
-                        <i class="fa-solid fa-rotate-right"></i> إعادة البدء من البداية
+                    <button id="btn-gameover-retry" class="glow-btn primary-btn pulse-anim">
+                        <i class="fa-solid fa-rotate-right"></i> المحاولة مجدداً
                     </button>
                     <button id="btn-gameover-stages" class="glow-btn secondary-btn">
                         <i class="fa-solid fa-map"></i> اختيار مرحلة أخرى
                     </button>
                     <button id="btn-gameover-menu" class="glow-btn tertiary-btn">
                         <i class="fa-solid fa-house"></i> القائمة الرئيسية
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 8. REWARDED AD VIDEO MODAL (إعلان المكافأة لإحياء الفارس) -->
-        <div id="modal-rewarded-ad" class="ui-modal hidden">
-            <div class="modal-card ad-glass-card">
-                <div class="ad-card-header">
-                    <span class="ad-badge-tag"><i class="fa-solid fa-rectangle-ad"></i> إعلان مكافأة الإحياء</span>
-                    <span id="ad-countdown-timer" class="ad-timer-badge">5 ثوانٍ</span>
-                </div>
-
-                <div class="ad-mockup-body">
-                    <div class="ad-banner-hero">
-                        <div class="ad-cosmic-avatar">⚔️✨💖</div>
-                        <h3 class="ad-hero-title">الفارس السماوي 2D</h3>
-                        <p class="ad-hero-sub">برمجة وتطوير: أحمد عبد الوهاب</p>
-                    </div>
-
-                    <div class="ad-loading-animation">
-                        <div class="ad-pulse-heart"><i class="fa-solid fa-heart-pulse"></i></div>
-                        <p id="ad-status-msg">جاري تجهيز قلوب الشفاء والدرع الذهبي للفارس...</p>
-                        <div class="ad-progress-track">
-                            <div id="ad-progress-bar-fill" class="ad-progress-fill" style="width: 0%;"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-actions" style="margin-top: 12px;">
-                    <button id="btn-claim-ad-revive" class="glow-btn primary-btn disabled-btn" disabled>
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> <span>استعادة طاقتك والعودة للمعركة!</span>
-                    </button>
-                    <button id="btn-cancel-ad" class="mini-text-btn" style="margin-top: 6px;">
-                        <i class="fa-solid fa-xmark"></i> إلغاء العودة
                     </button>
                 </div>
             </div>
@@ -549,22 +513,22 @@
         </div>
     </div>
 
-    <!-- Scripts with Cache Buster v11.1 (Hotfix for script execution) -->
-    <script src="js/audio.js?v=11.1"></script>
-    <script src="js/particles.js?v=11.1"></script>
-    <script src="js/levels.js?v=11.1"></script>
-    <script src="js/entities.js?v=11.1"></script>
-    <script src="js/controls.js?v=11.1"></script>
-    <script src="js/engine.js?v=11.1"></script>
-    <script src="js/dialogue.js?v=11.1"></script>
-    <script src="js/game.js?v=11.1"></script>
+    <!-- Scripts with Cache Buster v8.0 -->
+    <script src="js/audio.js?v=8.0"></script>
+    <script src="js/particles.js?v=8.0"></script>
+    <script src="js/levels.js?v=8.0"></script>
+    <script src="js/entities.js?v=8.0"></script>
+    <script src="js/controls.js?v=8.0"></script>
+    <script src="js/engine.js?v=8.0"></script>
+    <script src="js/dialogue.js?v=8.0"></script>
+    <script src="js/game.js?v=8.0"></script>
 
     <!-- Service Worker & PWA Install Registration -->
     <script>
         // Register Service Worker for Offline PWA with auto-update
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js?v=11.1')
+                navigator.serviceWorker.register('./sw.js?v=8.0')
                     .then((reg) => {
                         console.log('[PWA] Service Worker registered! Scope:', reg.scope);
                         reg.update();
