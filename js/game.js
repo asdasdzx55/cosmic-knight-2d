@@ -1,6 +1,7 @@
 /**
  * COSMIC KNIGHT 2D - MASTER GAME CONTROLLER
- * State management, save data persistence, UI screens, shop system, localization, and main animation loop.
+ * State management, save data persistence, UI screens, shop system, localization, Endless Survival & Rewarded Ads.
+ * Programmed & Developed by: Ahmed Abdelwahab (أحمد عبد الوهاب)
  */
 
 class GameManager {
@@ -13,10 +14,20 @@ class GameManager {
         this.enemiesDefeated = 0;
         this.damageTakenThisLevel = 0;
 
+        // Endless Survival Mode variables
+        this.isEndlessMode = false;
+        this.currentWave = 1;
+        this.survivalScore = 0;
+        this.isWaveSpawning = false;
+        this.waveCooldownTimer = 0;
+
+        // Rewarded Ad Timer & state
+        this.adInterval = null;
+
         // Save Data Model
         this.saveData = {
             unlockedStages: [1],
-            stageStars: { 1: [false, false, false], 2: [false, false, false], 3: [false, false, false], 4: [false, false, false], 5: [false, false, false], 6: [false, false, false] },
+            stageStars: { 1: [false, false, false], 2: [false, false, false], 3: [false, false, false], 4: [false, false, false], 5: [false, false, false], 6: [false, false, false], 7: [false, false, false], 8: [false, false, false], 9: [false, false, false] },
             coins: 50, // Starting gift coins
             equippedSkin: 'classic',
             ownedSkins: ['classic'],
@@ -24,6 +35,8 @@ class GameManager {
             ownedTrails: ['cyan'],
             upgrades: { maxHpPlus: false, dashCooldownPlus: false },
             difficulty: 'medium',
+            highWave: 1,
+            survivalHighScore: 0,
             isMuted: false,
             lang: 'ar'
         };
@@ -49,6 +62,8 @@ class GameManager {
     initUI() {
         this.updateDifficultyUI();
         this.updateMenuStats();
+        if (window.dialogueManager) window.dialogueManager.init();
+        this.showScreen('screen-main-menu');
     }
 
     setDifficulty(diff) {
@@ -114,8 +129,9 @@ class GameManager {
         this.player.dashCooldown = this.saveData.upgrades.dashCooldownPlus ? 0.5 : 0.75;
     }
 
-    // ================= STAGE PROGRESSION =================
+    // ================= STAGE PROGRESSION & ENDLESS MODE =================
     startLevel(stageId) {
+        this.isEndlessMode = false;
         const levelData = window.GAME_LEVELS.find(lvl => lvl.id === stageId);
         if (!levelData) return;
 
@@ -153,12 +169,116 @@ class GameManager {
         }
     }
 
+    startEndlessMode() {
+        this.isEndlessMode = true;
+        this.currentWave = 1;
+        this.survivalScore = 0;
+        this.waveCooldownTimer = 0;
+        this.isWaveSpawning = false;
+
+        const levelData = window.GAME_LEVELS.find(lvl => lvl.id === 'endless');
+        if (!levelData) return;
+
+        this.currentStageId = 'endless';
+        this.levelTimer = 0;
+        this.coinsCollectedThisLevel = 0;
+        this.enemiesDefeated = 0;
+        this.damageTakenThisLevel = 0;
+
+        this.applyUpgradesAndCustomization();
+        this.engine.loadLevel(levelData, this.player);
+
+        const hudStageName = document.getElementById('hud-stage-name');
+        if (hudStageName) {
+            hudStageName.innerText = `♾️ الموجة 1`;
+        }
+
+        this.showScreen('NONE');
+        this.state = 'PLAYING';
+        this.spawnNextWave();
+    }
+
+    spawnNextWave() {
+        this.isWaveSpawning = false;
+        const wave = this.currentWave;
+        const enemies = [];
+
+        // Dynamic Enemy Wave Generator
+        if (wave === 1) {
+            enemies.push(new Enemy('slime', 300, 520, 160));
+            enemies.push(new Enemy('slime', 1400, 520, 160));
+            enemies.push(new Enemy('bat', 500, 240, 180));
+            enemies.push(new Enemy('bat', 1200, 240, 180));
+        } else if (wave === 2) {
+            enemies.push(new Enemy('slime', 400, 520, 200));
+            enemies.push(new Enemy('bat', 600, 220, 200));
+            enemies.push(new Enemy('imp', 260, 360, 140));
+            enemies.push(new Enemy('imp', 1460, 360, 140));
+        } else if (wave === 3) {
+            enemies.push(new Enemy('knight', 350, 500, 220));
+            enemies.push(new Enemy('knight', 1350, 500, 220));
+            enemies.push(new Enemy('imp', 800, 280, 160));
+            enemies.push(new Enemy('bat', 500, 200, 240));
+            enemies.push(new Enemy('bat', 1200, 200, 240));
+            // Heart drop reward for reaching wave 3
+            this.engine.collectibles.push(new Collectible({ x: 900, y: 520, type: 'heart' }));
+        } else if (wave === 4) {
+            enemies.push(new Enemy('turret', 200, 390));
+            enemies.push(new Enemy('turret', 1500, 390));
+            enemies.push(new Enemy('knight', 600, 500, 200));
+            enemies.push(new Enemy('knight', 1100, 500, 200));
+            enemies.push(new Enemy('imp', 900, 260, 180));
+        } else if (wave === 5) {
+            // Mini Boss Wave!
+            const boss = new Enemy('boss', 900, 340, 0, 35);
+            enemies.push(boss);
+            enemies.push(new Enemy('bat', 400, 200, 200));
+            enemies.push(new Enemy('bat', 1300, 200, 200));
+            this.engine.collectibles.push(new Collectible({ x: 440, y: 240, type: 'heart' }));
+            this.engine.collectibles.push(new Collectible({ x: 1160, y: 240, type: 'heart' }));
+        } else {
+            // Wave 6+ Scaling
+            const count = Math.min(10, 4 + Math.floor(wave * 0.7));
+            const types = ['slime', 'bat', 'imp', 'knight', 'turret'];
+            for (let i = 0; i < count; i++) {
+                const type = types[Math.floor(Math.random() * types.length)];
+                const spawnX = 200 + Math.random() * 1300;
+                const spawnY = (type === 'bat' || type === 'imp') ? 220 + Math.random() * 120 : 510;
+                const hp = (type === 'knight' || type === 'turret') ? 4 + Math.floor(wave * 0.5) : 2 + Math.floor(wave * 0.3);
+                enemies.push(new Enemy(type, spawnX, spawnY, 180, hp));
+            }
+            if (wave % 5 === 0) {
+                // Giant Boss every 5 waves
+                enemies.push(new Enemy('boss', 900, 340, 0, 40 + wave * 5));
+            }
+            if (wave % 2 === 0) {
+                this.engine.collectibles.push(new Collectible({ x: 300 + Math.random() * 1100, y: 500, type: 'heart' }));
+            }
+        }
+
+        this.engine.enemies = enemies;
+        this.showToast(`🌊 الموجة ${wave}: صُمودك يصنع المجد!`);
+        window.soundEngine.playCoin();
+        if (window.gameEngine) window.gameEngine.addScreenShake(8, 0.4);
+
+        const hudStageName = document.getElementById('hud-stage-name');
+        if (hudStageName) {
+            hudStageName.innerText = `♾️ الموجة ${wave}`;
+        }
+    }
+
     restartLevel() {
-        this.startLevel(this.currentStageId);
+        if (this.isEndlessMode) {
+            this.startEndlessMode();
+        } else {
+            this.startLevel(this.currentStageId);
+        }
     }
 
     completeLevel() {
         if (this.state !== 'PLAYING') return;
+        if (this.isEndlessMode) return; // Endless mode progresses via waves
+
         this.state = 'VICTORY';
 
         const lvl = this.engine.currentLevel;
@@ -166,14 +286,11 @@ class GameManager {
         window.particleSystem.emitConfetti(this.engine.cameraX, this.engine.cameraY, this.engine.width, this.engine.height);
 
         // Calculate Stars:
-        // Star 1: Completion
         this.collectedStars[0] = true;
-        // Star 2: All 3 gems collected
         const allGemsCollected = this.engine.collectibles
             .filter(c => c.type === 'star_gem')
             .every(c => c.collected);
         if (allGemsCollected) this.collectedStars[1] = true;
-        // Star 3: Target Time met
         if (this.levelTimer <= lvl.targetTime) {
             this.collectedStars[2] = true;
         }
@@ -188,7 +305,7 @@ class GameManager {
 
         // Unlock next stage
         const nextStageId = this.currentStageId + 1;
-        if (nextStageId <= window.GAME_LEVELS.length && !this.saveData.unlockedStages.includes(nextStageId)) {
+        if (nextStageId <= 9 && !this.saveData.unlockedStages.includes(nextStageId)) {
             this.saveData.unlockedStages.push(nextStageId);
         }
 
@@ -198,34 +315,27 @@ class GameManager {
         // Check for Outro Dialogue before showing victory modal
         if (window.dialogueManager && GAME_DIALOGUES['outro_' + this.currentStageId]) {
             window.dialogueManager.startDialogue('outro_' + this.currentStageId, () => {
-                this.showVictoryModal(lvl, nextStageId);
+                this.displayVictoryModal();
             });
         } else {
-            this.showVictoryModal(lvl, nextStageId);
+            this.displayVictoryModal();
         }
     }
 
-    showVictoryModal(lvl, nextStageId) {
-        // Update Victory Modal UI
-        document.getElementById('victory-stage-title').innerText = this.saveData.lang === 'ar' ? lvl.titleAr : lvl.titleEn;
-        document.getElementById('v-time-val').innerText = this.formatTime(this.levelTimer);
-        document.getElementById('v-coins-val').innerText = '+' + this.coinsCollectedThisLevel;
-        document.getElementById('v-enemies-val').innerText = this.enemiesDefeated;
+    displayVictoryModal() {
+        document.getElementById('victory-coins').innerText = '+' + this.coinsCollectedThisLevel;
+        document.getElementById('victory-time').innerText = Math.floor(this.levelTimer) + 's';
 
         for (let i = 1; i <= 3; i++) {
-            const starSlot = document.getElementById('v-star-' + i);
-            if (starSlot) {
-                if (this.collectedStars[i - 1]) {
-                    starSlot.classList.add('earned');
-                } else {
-                    starSlot.classList.remove('earned');
-                }
+            const star = document.getElementById('star-' + i);
+            if (star) {
+                star.className = this.collectedStars[i - 1] ? 'fa-solid fa-star star-earned' : 'fa-regular fa-star';
             }
         }
 
         const nextBtn = document.getElementById('btn-victory-next');
         if (nextBtn) {
-            if (nextStageId > window.GAME_LEVELS.length) {
+            if (this.currentStageId >= 9) {
                 nextBtn.style.display = 'none';
             } else {
                 nextBtn.style.display = 'flex';
@@ -241,6 +351,69 @@ class GameManager {
         this.showModal('modal-gameover');
     }
 
+    // ================= REWARDED AD REVIVE SYSTEM =================
+    showRewardedAdForRevive() {
+        this.hideAllModals();
+        const adModal = document.getElementById('modal-rewarded-ad');
+        if (adModal) adModal.classList.remove('hidden');
+
+        let secondsLeft = 5;
+        const timerBadge = document.getElementById('ad-countdown-timer');
+        const progressBar = document.getElementById('ad-progress-bar-fill');
+        const claimBtn = document.getElementById('btn-claim-ad-revive');
+        const statusMsg = document.getElementById('ad-status-msg');
+
+        if (claimBtn) {
+            claimBtn.disabled = true;
+            claimBtn.classList.add('disabled-btn');
+            claimBtn.classList.remove('pulse-anim');
+        }
+        if (progressBar) progressBar.style.width = '0%';
+        if (timerBadge) timerBadge.innerText = `${secondsLeft} ثوانٍ`;
+        if (statusMsg) statusMsg.innerText = 'جاري تحضير قلوب الشفاء وطاقة الفارس...';
+
+        if (this.adInterval) clearInterval(this.adInterval);
+        
+        let elapsed = 0;
+        this.adInterval = setInterval(() => {
+            elapsed += 0.2;
+            const remaining = Math.max(0, Math.ceil(5 - elapsed));
+            if (timerBadge) timerBadge.innerText = `${remaining} ثوانٍ`;
+            if (progressBar) progressBar.style.width = `${Math.min(100, (elapsed / 5) * 100)}%`;
+
+            if (elapsed >= 5) {
+                clearInterval(this.adInterval);
+                this.adInterval = null;
+                if (timerBadge) timerBadge.innerText = 'مكتمل! ✨';
+                if (statusMsg) statusMsg.innerText = '💖 القلوب جاهزة! اضغط بالأسفل للعودة فوراً!';
+                if (claimBtn) {
+                    claimBtn.disabled = false;
+                    claimBtn.classList.remove('disabled-btn');
+                    claimBtn.classList.add('pulse-anim');
+                }
+                if (window.soundEngine) window.soundEngine.playLevelClear();
+            }
+        }, 200);
+    }
+
+    claimAdReviveReward() {
+        if (this.adInterval) clearInterval(this.adInterval);
+        this.hideAllModals();
+
+        // Revive Player on the spot!
+        this.player.hp = this.player.maxHp;
+        this.player.isDead = false;
+        this.player.invulnerableTimer = 4.0; // 4 seconds golden invulnerability shield
+        this.state = 'PLAYING';
+
+        const touchLayer = document.getElementById('touch-controls');
+        if (touchLayer) touchLayer.style.display = 'flex';
+
+        window.soundEngine.playDash();
+        window.particleSystem.emitGemBurst(this.player.x + this.player.w * 0.5, this.player.y + this.player.h * 0.5, '#00f59b');
+        this.showToast('💖 تم إحياء الفارس واستعادة كامل القلوب مع درع ذهبي مؤقت!');
+    }
+
     collectLevelStar(starIdx) {
         if (starIdx >= 1 && starIdx <= 3) {
             this.collectedStars[starIdx - 1] = true;
@@ -253,10 +426,6 @@ class GameManager {
         this.saveData.coins += amount;
         this.updateHUDCoins();
         this.persistSaveData();
-    }
-
-    addScore(score) {
-        // High score calculation if needed
     }
 
     togglePause() {
@@ -311,7 +480,7 @@ class GameManager {
     }
 
     hideAllModals() {
-        const modals = ['modal-pause', 'modal-victory', 'modal-gameover', 'modal-install-app'];
+        const modals = ['modal-pause', 'modal-victory', 'modal-gameover', 'modal-install-app', 'modal-rewarded-ad'];
         modals.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -322,22 +491,21 @@ class GameManager {
         }
     }
 
-    hideModals() {
-        this.hideAllModals();
-    }
-
     updateMenuStats() {
         let totalStars = 0;
         for (const k in this.saveData.stageStars) {
             totalStars += this.saveData.stageStars[k].filter(Boolean).length;
         }
 
-        const maxTotalStars = (window.GAME_LEVELS ? window.GAME_LEVELS.length * 3 : 27);
+        const maxTotalStars = (window.GAME_LEVELS ? window.GAME_LEVELS.filter(lvl => lvl.id !== 'endless').length * 3 : 27);
         const menuStars = document.getElementById('menu-total-stars');
         if (menuStars) menuStars.innerText = totalStars + ' / ' + maxTotalStars;
 
         const menuCoins = document.getElementById('menu-total-coins');
         if (menuCoins) menuCoins.innerText = this.saveData.coins;
+
+        const menuHighWave = document.getElementById('menu-high-wave');
+        if (menuHighWave) menuHighWave.innerText = this.saveData.highWave || 1;
 
         const stagesCoins = document.getElementById('stages-coins');
         if (stagesCoins) stagesCoins.innerText = this.saveData.coins;
@@ -389,67 +557,45 @@ class GameManager {
         }
     }
 
+    updateHUDCoins() {
+        const coinCount = document.getElementById('hud-coin-count');
+        if (coinCount) coinCount.innerText = this.saveData.coins;
+    }
+
     updateHUDStars() {
         for (let i = 1; i <= 3; i++) {
             const slot = document.getElementById('star-slot-' + i);
             if (slot) {
-                if (this.collectedStars[i - 1]) {
-                    slot.classList.add('collected');
-                } else {
-                    slot.classList.remove('collected');
-                }
+                slot.className = this.collectedStars[i - 1] ? 'fa-solid fa-star star-slot earned' : 'fa-solid fa-star star-slot';
             }
         }
     }
 
-    updateHUDCoins() {
-        const coinCount = document.getElementById('hud-coin-count');
-        if (coinCount) {
-            coinCount.innerText = this.coinsCollectedThisLevel;
-        }
-    }
-
-    formatTime(seconds) {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
-    }
-
-    // ================= STAGES SELECTION GRID =================
     renderStagesGrid() {
         const container = document.getElementById('stages-container');
         if (!container) return;
-
         container.innerHTML = '';
 
-        window.GAME_LEVELS.forEach(lvl => {
+        const levels = (window.GAME_LEVELS || []).filter(lvl => lvl.id !== 'endless');
+        levels.forEach(lvl => {
             const isUnlocked = this.saveData.unlockedStages.includes(lvl.id);
             const stars = this.saveData.stageStars[lvl.id] || [false, false, false];
+            const starCount = stars.filter(Boolean).length;
 
             const card = document.createElement('div');
-            card.className = 'stage-card ' + (isUnlocked ? '' : 'locked');
-
-            const biomeIcons = {
-                forest: 'fa-tree',
-                cavern: 'fa-gem',
-                volcano: 'fa-volcano',
-                sky: 'fa-cloud-bolt',
-                cyber: 'fa-microchip',
-                boss: 'fa-dragon',
-                shadow: 'fa-ghost',
-                metropolis: 'fa-city',
-                void_sanctum: 'fa-atom'
-            };
-
+            card.className = `stage-card ${isUnlocked ? 'unlocked' : 'locked'}`;
             card.innerHTML = `
-                <div class="stage-num-badge">STAGE 0${lvl.id}</div>
-                <div class="stage-icon"><i class="fa-solid ${biomeIcons[lvl.biome] || 'fa-dungeon'}"></i></div>
+                <div class="stage-card-header">
+                    <span class="stage-badge">${this.saveData.lang === 'ar' ? 'المرحلة' : 'Stage'} ${lvl.id}</span>
+                    <div class="stage-stars">
+                        <i class="fa-solid fa-star ${stars[0] ? 'gold-star' : 'empty-star'}"></i>
+                        <i class="fa-solid fa-star ${stars[1] ? 'gold-star' : 'empty-star'}"></i>
+                        <i class="fa-solid fa-star ${stars[2] ? 'gold-star' : 'empty-star'}"></i>
+                    </div>
+                </div>
                 <div class="stage-title">${this.saveData.lang === 'ar' ? lvl.titleAr : lvl.titleEn}</div>
-                <div class="stage-biome">${lvl.biome.toUpperCase()}</div>
-                <div class="stage-stars-row">
-                    <i class="fa-solid fa-star ${stars[0] ? 'earned' : ''}"></i>
-                    <i class="fa-solid fa-star ${stars[1] ? 'earned' : ''}"></i>
-                    <i class="fa-solid fa-star ${stars[2] ? 'earned' : ''}"></i>
+                <div class="stage-footer">
+                    ${isUnlocked ? '<span class="stage-status"><i class="fa-solid fa-play"></i> ابدأ</span>' : '<span class="stage-status"><i class="fa-solid fa-lock"></i> مقفلة</span>'}
                 </div>
             `;
 
@@ -463,20 +609,17 @@ class GameManager {
         });
     }
 
-    // ================= SHOP & CUSTOMIZATION =================
     renderShop(activeTab = 'skins') {
         const container = document.getElementById('shop-items-container');
         if (!container) return;
-
         container.innerHTML = '';
 
         if (activeTab === 'skins') {
             const skins = [
-                { id: 'classic', titleAr: 'الفارس السماوي (الأصلي)', titleEn: 'Azure Knight', descAr: '🛡️ متوازن، تصدي بالسيف، قفز مزدوج، اندفاع كوني', cost: 0, color: '#00b4d8' },
-                { id: 'ninja', titleAr: 'النينجا السيبراني (شينوبي)', titleEn: 'Cyber Ninja', descAr: '🥷 قفزة ثلاثية (Triple Jump) + قذف نجوم الشوريكين + سرعة فائقة!', cost: 60, color: '#ff2e63' },
-                { id: 'paladin', titleAr: 'فارس الحمم الملتهبة', titleEn: 'Magma Paladin', descAr: '🌋 درع الحمم (مناعة ضد الحمم والأشواك) + 4 قلوب + موجة لهب!', cost: 120, color: '#ffb703' },
-                { id: 'valkyrie', titleAr: 'سيد البرق الفضائي', titleEn: 'Thunder Lord', descAr: '⚡ صعق الأعداء أثناء الاندفاع + صواعق رعدية + اندفاع فائق السرعة!', cost: 180, color: '#7209b7' },
-                { id: 'shadow', titleAr: 'سيد الفراغ الكوني', titleEn: 'Shadow Void Lord', descAr: '🌌 شحن سريع للضربة القاضية + هجوم شبحي وظلال فضائية!', cost: 250, color: '#10002b' }
+                { id: 'classic', titleAr: 'الفارس السماوي (Classic)', titleEn: 'Cosmic Knight', color: '#00e5ff', cost: 0 },
+                { id: 'crimson', titleAr: 'المحاربة القرمزية (Crimson Valkyrie)', titleEn: 'Crimson Valkyrie', color: '#ff2e63', cost: 80 },
+                { id: 'cyber', titleAr: 'الفارس السيبراني (Cyber Paladin)', titleEn: 'Cyber Paladin', color: '#00f59b', cost: 120 },
+                { id: 'phoenix', titleAr: 'طائر الفينيق الذهبي (Golden Phoenix)', titleEn: 'Golden Phoenix', color: '#ffb703', cost: 200 }
             ];
 
             skins.forEach(item => {
@@ -487,12 +630,12 @@ class GameManager {
                 card.className = 'shop-item-card ' + (isEquipped ? 'equipped' : '');
                 card.innerHTML = `
                     <div class="shop-item-preview" style="background: radial-gradient(circle, ${item.color} 0%, #080c14 100%);">
-                        <i class="fa-solid fa-user-shield" style="color: #fff;"></i>
+                        <i class="fa-solid fa-user-ninja" style="color: ${item.color};"></i>
                     </div>
                     <div class="shop-item-title">${this.saveData.lang === 'ar' ? item.titleAr : item.titleEn}</div>
-                    <div class="shop-item-desc">${item.descAr}</div>
+                    <div class="shop-item-desc">زي قتالي متقدم بلمعان طاقة فريد</div>
                     <button class="shop-item-btn ${isEquipped ? 'btn-equipped' : (isOwned ? 'btn-equip' : 'btn-buy')}">
-                        ${isEquipped ? '<i class="fa-solid fa-check"></i> مفعل' : (isOwned ? 'تفعيل' : `<i class="fa-solid fa-coins gold-coin-icon"></i> ${item.cost}`)}
+                        ${isEquipped ? '<i class="fa-solid fa-check"></i> مفعل' : (isOwned ? 'ارتداء' : `<i class="fa-solid fa-coins gold-coin-icon"></i> ${item.cost}`)}
                     </button>
                 `;
 
@@ -521,10 +664,10 @@ class GameManager {
             });
         } else if (activeTab === 'trails') {
             const trails = [
-                { id: 'cyan', titleAr: 'شرارات النيون السماوية', titleEn: 'Cyan Sparks', cost: 0, color: '#00e5ff' },
-                { id: 'fire', titleAr: 'شعلة النار الحارقة', titleEn: 'Flame Burst', cost: 50, color: '#ff3b30' },
-                { id: 'ice', titleAr: 'بلورات الصقيع الثلجية', titleEn: 'Frost Crystals', cost: 90, color: '#a0c4ff' },
-                { id: 'rainbow', titleAr: 'طيف قوس قزح الكوني', titleEn: 'Cosmic Rainbow', cost: 150, color: '#ff595e' }
+                { id: 'cyan', titleAr: 'هالة الضوء السماوي (Cyan Glow)', titleEn: 'Cyan Glow', color: '#00e5ff', cost: 0 },
+                { id: 'flame', titleAr: 'هالة النيران الحارقة (Flame Trail)', titleEn: 'Flame Trail', color: '#ff5400', cost: 60 },
+                { id: 'void', titleAr: 'هالة الفراغ المظلم (Void Plasma)', titleEn: 'Void Plasma', color: '#c77dff', cost: 100 },
+                { id: 'rainbow', titleAr: 'هالة النجوم البراقة (Starlight Nova)', titleEn: 'Starlight Nova', color: '#ffb703', cost: 150 }
             ];
 
             trails.forEach(item => {
@@ -613,6 +756,7 @@ class GameManager {
     bindEvents() {
         // Main Menu Buttons
         document.getElementById('btn-menu-play').onclick = () => this.startLevel(1);
+        document.getElementById('btn-menu-survival').onclick = () => this.startEndlessMode();
         document.getElementById('btn-menu-stages').onclick = () => this.showScreen('screen-stages');
         document.getElementById('btn-menu-shop').onclick = () => this.showScreen('screen-shop');
         document.getElementById('btn-menu-how').onclick = () => this.showScreen('screen-how');
@@ -655,7 +799,14 @@ class GameManager {
             this.startLevel(this.currentStageId + 1);
         };
 
-        // Game Over Buttons
+        // Game Over & Rewarded Ad Revive Buttons
+        document.getElementById('btn-gameover-ad-revive').onclick = () => this.showRewardedAdForRevive();
+        document.getElementById('btn-claim-ad-revive').onclick = () => this.claimAdReviveReward();
+        document.getElementById('btn-cancel-ad').onclick = () => {
+            if (this.adInterval) clearInterval(this.adInterval);
+            this.showModal('modal-gameover');
+        };
+
         document.getElementById('btn-gameover-retry').onclick = () => { this.hideAllModals(); this.restartLevel(); };
         document.getElementById('btn-gameover-stages').onclick = () => { this.hideAllModals(); this.showScreen('screen-stages'); };
         document.getElementById('btn-gameover-menu').onclick = () => { this.hideAllModals(); this.showScreen('screen-main-menu'); };
@@ -724,11 +875,6 @@ class GameManager {
         }
     }
 
-    initUI() {
-        if (window.dialogueManager) window.dialogueManager.init();
-        this.showScreen('screen-main-menu');
-    }
-
     // ================= MAIN 60 FPS GAME LOOP =================
     gameLoop(now) {
         const dt = Math.min(0.05, (now - this.lastTime) / 1000);
@@ -740,6 +886,35 @@ class GameManager {
             // Engine update & render
             this.engine.update(dt, this.player, window.inputController.state);
             this.engine.render(this.player);
+
+            // Endless wave progression
+            if (this.isEndlessMode && this.state === 'PLAYING') {
+                if (this.engine.enemies.length > 0 && this.engine.enemies.every(e => e.isDead)) {
+                    if (!this.isWaveSpawning) {
+                        this.isWaveSpawning = true;
+                        this.waveCooldownTimer = 1.8;
+                        this.survivalScore += this.currentWave * 250 + 100;
+                        this.addCoins(this.currentWave * 8);
+                        
+                        if (this.currentWave > (this.saveData.highWave || 1)) {
+                            this.saveData.highWave = this.currentWave;
+                        }
+                        if (this.survivalScore > (this.saveData.survivalHighScore || 0)) {
+                            this.saveData.survivalHighScore = this.survivalScore;
+                        }
+                        this.persistSaveData();
+                        window.soundEngine.playLevelClear();
+                        window.particleSystem.emitConfetti(this.engine.cameraX, this.engine.cameraY, this.engine.width, this.engine.height);
+                        this.showToast(`🎉 انتصرت في الموجة ${this.currentWave}! +${this.currentWave * 8} عملة ذهبية!`);
+                    } else {
+                        this.waveCooldownTimer -= dt;
+                        if (this.waveCooldownTimer <= 0) {
+                            this.currentWave++;
+                            this.spawnNextWave();
+                        }
+                    }
+                }
+            }
 
             // HUD update
             this.updateHUD();

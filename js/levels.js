@@ -611,6 +611,47 @@ const GAME_LEVELS = [
             { type: 'boss', x: 900, y: 380, maxHp: 60, isDragon: true }
         ],
         exit: { x: 1660, y: 510, w: 60, h: 90, lockedUntilBossDead: true }
+    },
+
+    // ==========================================
+    // ENDLESS SURVIVAL ARENA (حلبة البقاء اللانهائي)
+    // ==========================================
+    {
+        id: 'endless',
+        titleAr: "حلبة البقاء اللانهائية",
+        titleEn: "Endless Survival Arena",
+        biome: "endless_void",
+        targetTime: 999,
+        width: 1800,
+        height: 700,
+        spawn: { x: 900, y: 480 },
+        bgGradient: ['#04010a', '#140026', '#2b004f'],
+        platforms: [
+            // Main battle floor
+            { x: 100, y: 560, w: 1600, h: 140, type: 'solid', style: 'void_floor' },
+            // Left tactical dais & bounce pad
+            { x: 160, y: 420, w: 220, h: 24, type: 'solid', style: 'void_platform' },
+            { x: 230, y: 396, w: 60, h: 24, type: 'bounce', bounceForce: -19, style: 'void_bounce' },
+            // High Left Floating Sanctum
+            { x: 440, y: 280, w: 200, h: 24, type: 'solid', style: 'void_platform' },
+            // Center High Hover dais
+            { x: 780, y: 340, w: 240, h: 24, type: 'solid', style: 'void_platform' },
+            // High Right Floating Sanctum
+            { x: 1160, y: 280, w: 200, h: 24, type: 'solid', style: 'void_platform' },
+            // Right tactical dais & bounce pad
+            { x: 1420, y: 420, w: 220, h: 24, type: 'solid', style: 'void_platform' },
+            { x: 1510, y: 396, w: 60, h: 24, type: 'bounce', bounceForce: -19, style: 'void_bounce' }
+        ],
+        hazards: [
+            { x: 60, y: 100, w: 24, h: 500, type: 'laser' },
+            { x: 1716, y: 100, w: 24, h: 500, type: 'laser' }
+        ],
+        collectibles: [
+            { x: 900, y: 280, type: 'ultimate_rune' }
+        ],
+        checkpoints: [],
+        enemies: [],
+        exit: { x: -999, y: -999, w: 0, h: 0 } // Endless survival has no exit!
     }
 ];
 
