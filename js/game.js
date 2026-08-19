@@ -702,8 +702,8 @@ class GameManager {
 
             // End frame inputs
             window.inputController.endFrame();
-        } else if (this.state === 'PAUSED' || this.state === 'VICTORY' || this.state === 'GAMEOVER') {
-            // Still render paused scene in background
+        } else if (this.state === 'PAUSED' || this.state === 'VICTORY' || this.state === 'GAMEOVER' || this.state === 'DIALOGUE') {
+            // Still render live scene in background during cutscenes/dialogues/pause
             this.engine.render(this.player);
         }
 

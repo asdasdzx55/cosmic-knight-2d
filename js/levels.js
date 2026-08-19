@@ -396,9 +396,7 @@ const GAME_LEVELS = [
             { x: 340, y: 470, w: 120, h: 24, type: 'crumble', style: 'shadow_crumble' },
             { x: 530, y: 380, w: 140, h: 24, type: 'solid', style: 'shadow_stone' },
 
-            // Secret Wall hiding the Ultimate Finisher Chamber
-            { x: 750, y: 220, w: 60, h: 180, type: 'secret_wall', style: 'shadow_secret' },
-            // Inside Secret Chamber
+            // High Upper Passage
             { x: 810, y: 340, w: 280, h: 30, type: 'solid', style: 'shadow_stone' },
             { x: 810, y: 180, w: 280, h: 30, type: 'solid', style: 'shadow_stone' },
 
@@ -421,7 +419,7 @@ const GAME_LEVELS = [
         collectibles: [
             { x: 220, y: 400, type: 'coin', val: 5 },
             { x: 580, y: 320, type: 'coin', val: 5 },
-            // Inside Secret Chamber: Ultimate Rune + Gold Cache + Star 1
+            // Upper High Ledge: Ultimate Rune + Gold Cache + Star 1
             { x: 900, y: 280, type: 'ultimate_rune' },
             { x: 960, y: 280, type: 'coin', val: 20 },
             { x: 1020, y: 280, type: 'star_gem', starIdx: 1 },
@@ -464,8 +462,7 @@ const GAME_LEVELS = [
             { x: 520, y: 360, w: 140, h: 24, type: 'bounce', bounceForce: -19, style: 'cyber_bounce' },
             { x: 740, y: 260, w: 180, h: 24, type: 'moving', vx: 2.5, rangeX: 200, startX: 740, style: 'cyber_tower' },
 
-            // Secret rooftop passage
-            { x: 1000, y: 150, w: 60, h: 140, type: 'secret_wall', style: 'cyber_secret' },
+            // High rooftop bridge
             { x: 1060, y: 180, w: 260, h: 24, type: 'solid', style: 'cyber_tower' },
 
             { x: 1200, y: 520, w: 320, h: 280, type: 'solid', style: 'cyber_tower' },

@@ -4,7 +4,7 @@
  * Caches all game assets for instant offline play.
  */
 
-const CACHE_NAME = 'cosmic-knight-v5.0';
+const CACHE_NAME = 'cosmic-knight-v5.5';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -27,7 +27,7 @@ const ASSETS_TO_CACHE = [
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'
 ];
 
-// 1. Install Event: Cache Core Assets
+// 1. Install Event: Cache Core Assets & Skip Waiting
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
@@ -39,7 +39,7 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// 2. Activate Event: Clean old caches
+// 2. Activate Event: Clean old caches & Claim Clients immediately
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keyList) => {
@@ -55,43 +55,29 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// 3. Fetch Event: Cache First with Network Fallback & Runtime Caching
+// 3. Fetch Event: Network-First (always fresh when online, fallback to cache when offline)
 self.addEventListener('fetch', (event) => {
-    // Only handle GET requests
     if (event.request.method !== 'GET') return;
 
     event.respondWith(
-        caches.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) {
-                // Fetch in background to update cache (Stale-While-Revalidate)
-                fetch(event.request).then((networkResponse) => {
-                    if (networkResponse && networkResponse.status === 200) {
-                        caches.open(CACHE_NAME).then((cache) => {
-                            cache.put(event.request, networkResponse);
-                        });
-                    }
-                }).catch(() => {
-                    // Ignore offline network errors
-                });
-                return cachedResponse;
-            }
-
-            // Not in cache: fetch from network and store for next time
-            return fetch(event.request).then((networkResponse) => {
-                if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'opaque') {
-                    return networkResponse;
+        fetch(event.request)
+            .then((networkResponse) => {
+                if (networkResponse && networkResponse.status === 200) {
+                    const responseClone = networkResponse.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, responseClone);
+                    });
                 }
-                const responseToCache = networkResponse.clone();
-                caches.open(CACHE_NAME).then((cache) => {
-                    cache.put(event.request, responseToCache);
-                });
                 return networkResponse;
-            }).catch(() => {
-                // If offline and request is for HTML page, return root index
-                if (event.request.headers.get('accept')?.includes('text/html')) {
-                    return caches.match('./index.html');
-                }
-            });
-        })
+            })
+            .catch(() => {
+                // Offline fallback: Match from cache!
+                return caches.match(event.request).then((cachedResponse) => {
+                    if (cachedResponse) return cachedResponse;
+                    if (event.request.headers.get('accept')?.includes('text/html')) {
+                        return caches.match('./index.html');
+                    }
+                });
+            })
     );
 });
