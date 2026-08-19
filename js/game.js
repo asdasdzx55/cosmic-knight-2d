@@ -241,6 +241,69 @@ class GameManager {
         this.showModal('modal-gameover');
     }
 
+    // ================= REWARDED AD REVIVE SYSTEM =================
+    showRewardedAdForRevive() {
+        this.hideAllModals();
+        const adModal = document.getElementById('modal-rewarded-ad');
+        if (adModal) adModal.classList.remove('hidden');
+
+        let secondsLeft = 5;
+        const timerBadge = document.getElementById('ad-countdown-timer');
+        const progressBar = document.getElementById('ad-progress-bar-fill');
+        const claimBtn = document.getElementById('btn-claim-ad-revive');
+        const statusMsg = document.getElementById('ad-status-msg');
+
+        if (claimBtn) {
+            claimBtn.disabled = true;
+            claimBtn.classList.add('disabled-btn');
+            claimBtn.classList.remove('pulse-anim');
+        }
+        if (progressBar) progressBar.style.width = '0%';
+        if (timerBadge) timerBadge.innerText = `${secondsLeft} ثوانٍ`;
+        if (statusMsg) statusMsg.innerText = 'جاري تحضير قلوب الشفاء وطاقة الفارس...';
+
+        if (this.adInterval) clearInterval(this.adInterval);
+        
+        let elapsed = 0;
+        this.adInterval = setInterval(() => {
+            elapsed += 0.2;
+            const remaining = Math.max(0, Math.ceil(5 - elapsed));
+            if (timerBadge) timerBadge.innerText = `${remaining} ثوانٍ`;
+            if (progressBar) progressBar.style.width = `${Math.min(100, (elapsed / 5) * 100)}%`;
+
+            if (elapsed >= 5) {
+                clearInterval(this.adInterval);
+                this.adInterval = null;
+                if (timerBadge) timerBadge.innerText = 'مكتمل! ✨';
+                if (statusMsg) statusMsg.innerText = '💖 القلوب جاهزة! اضغط بالأسفل للعودة فوراً!';
+                if (claimBtn) {
+                    claimBtn.disabled = false;
+                    claimBtn.classList.remove('disabled-btn');
+                    claimBtn.classList.add('pulse-anim');
+                }
+                if (window.soundEngine) window.soundEngine.playLevelClear();
+            }
+        }, 200);
+    }
+
+    claimAdReviveReward() {
+        if (this.adInterval) clearInterval(this.adInterval);
+        this.hideAllModals();
+
+        // Revive Player on the spot!
+        this.player.hp = this.player.maxHp;
+        this.player.isDead = false;
+        this.player.invulnerableTimer = 4.0; // 4 seconds golden invulnerability shield
+        this.state = 'PLAYING';
+
+        const touchLayer = document.getElementById('touch-controls');
+        if (touchLayer) touchLayer.style.display = 'flex';
+
+        window.soundEngine.playDash();
+        window.particleSystem.emitGemBurst(this.player.x + this.player.w * 0.5, this.player.y + this.player.h * 0.5, '#00f59b');
+        this.showToast('💖 تم إحياء الفارس واستعادة كامل القلوب مع درع ذهبي مؤقت!');
+    }
+
     collectLevelStar(starIdx) {
         if (starIdx >= 1 && starIdx <= 3) {
             this.collectedStars[starIdx - 1] = true;
@@ -311,7 +374,7 @@ class GameManager {
     }
 
     hideAllModals() {
-        const modals = ['modal-pause', 'modal-victory', 'modal-gameover', 'modal-install-app'];
+        const modals = ['modal-pause', 'modal-victory', 'modal-gameover', 'modal-install-app', 'modal-rewarded-ad'];
         modals.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -655,7 +718,14 @@ class GameManager {
             this.startLevel(this.currentStageId + 1);
         };
 
-        // Game Over Buttons
+        // Game Over & Rewarded Ad Revive Buttons
+        document.getElementById('btn-gameover-ad-revive').onclick = () => this.showRewardedAdForRevive();
+        document.getElementById('btn-claim-ad-revive').onclick = () => this.claimAdReviveReward();
+        document.getElementById('btn-cancel-ad').onclick = () => {
+            if (this.adInterval) clearInterval(this.adInterval);
+            this.showModal('modal-gameover');
+        };
+
         document.getElementById('btn-gameover-retry').onclick = () => { this.hideAllModals(); this.restartLevel(); };
         document.getElementById('btn-gameover-stages').onclick = () => { this.hideAllModals(); this.showScreen('screen-stages'); };
         document.getElementById('btn-gameover-menu').onclick = () => { this.hideAllModals(); this.showScreen('screen-main-menu'); };

@@ -434,7 +434,12 @@
                 </div>
 
                 <div class="modal-actions">
-                    <button id="btn-gameover-retry" class="glow-btn primary-btn pulse-anim">
+                    <!-- REWARDED AD REVIVE BUTTON -->
+                    <button id="btn-gameover-ad-revive" class="glow-btn ad-revive-btn pulse-anim">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                        <span>مشاهدة إعلان للإحياء فوراً 💖 (+3 قلوب)</span>
+                    </button>
+                    <button id="btn-gameover-retry" class="glow-btn primary-btn">
                         <i class="fa-solid fa-rotate-right"></i> المحاولة مجدداً
                     </button>
                     <button id="btn-gameover-stages" class="glow-btn secondary-btn">
@@ -442,6 +447,32 @@
                     </button>
                     <button id="btn-gameover-menu" class="glow-btn tertiary-btn">
                         <i class="fa-solid fa-house"></i> القائمة الرئيسية
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7.5 REWARDED AD POPUP MODAL -->
+        <div id="modal-rewarded-ad" class="ui-modal hidden">
+            <div class="modal-card ad-glass-card">
+                <div class="ad-card-badge"><i class="fa-solid fa-rectangle-ad"></i> إعلان فيديو بمكافأة • استعادة الحياة</div>
+                <div class="ad-video-mockup">
+                    <div class="ad-video-icon"><i class="fa-solid fa-shield-heart pulse-anim"></i></div>
+                    <h3 class="ad-video-title">إحياء الفارس الكوني واستعادة كامل القلوب!</h3>
+                    <p class="ad-video-desc" id="ad-status-msg">جاري تجهيز قلوب الشفاء ودرع الحصانة الذهبي...</p>
+                    <div class="ad-countdown-pill" id="ad-countdown-timer">5 ثوانٍ</div>
+                    <div class="ad-progress-bar-track">
+                        <div class="ad-progress-bar-fill" id="ad-progress-bar-fill"></div>
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 16px;">
+                    <button id="btn-claim-ad-revive" class="glow-btn primary-btn disabled-btn" disabled>
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>استعادة طاقتك والعودة للمعركة!</span>
+                    </button>
+                    <button id="btn-cancel-ad" class="glow-btn tertiary-btn">
+                        <i class="fa-solid fa-xmark"></i> إلغاء العودة
                     </button>
                 </div>
             </div>
