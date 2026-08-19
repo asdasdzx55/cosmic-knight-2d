@@ -553,8 +553,10 @@ class Player {
         if (this.isDead) return;
         if (amount < 900 && this.invulnerableTimer > 0) return;
 
+        const difficulty = (window.gameManager && window.gameManager.saveData.difficulty) || 'medium';
+
         this.hp = Math.max(0, this.hp - amount);
-        this.invulnerableTimer = 1.2;
+        this.invulnerableTimer = difficulty === 'nightmare' ? 0.8 : (difficulty === 'easy' ? 1.6 : 1.2);
         window.soundEngine.playHurt();
         if (navigator.vibrate) navigator.vibrate(100);
 
@@ -854,8 +856,11 @@ class Enemy {
         const hoverSpeed = this.phase === 3 ? 3.5 : 2;
         this.y = this.startY + Math.sin(this.bossTimer * hoverSpeed) * hoverAmp;
 
-        // PHASE 3: TELEPORT DASH ATTACK
-        if (this.phase === 3 && this.teleportTimer > 5.0) {
+        const difficulty = (window.gameManager && window.gameManager.saveData.difficulty) || 'medium';
+
+        // PHASE 3: TELEPORT DASH ATTACK (faster in nightmare)
+        const teleportInterval = difficulty === 'nightmare' ? 3.2 : 5.0;
+        if (this.phase === 3 && this.teleportTimer > teleportInterval) {
             this.teleportTimer = 0;
             window.particleSystem.emitHitSparks(this.x + this.w * 0.5, this.y + this.h * 0.5, '#ff0054');
             window.soundEngine.playDash();
@@ -866,16 +871,21 @@ class Enemy {
             this.x = chosenX;
             this.startX = chosenX;
 
-            if (window.gameEngine) window.gameEngine.addScreenShake(8, 0.4);
+            if (window.gameEngine) window.gameEngine.addScreenShake(difficulty === 'nightmare' ? 12 : 8, 0.4);
             window.particleSystem.emitHitSparks(this.x + this.w * 0.5, this.y + this.h * 0.5, '#ffffff');
 
             // Ground Shockwave from teleport impact
-            projectiles.push(new Projectile(this.x + 10, this.y + this.h - 10, -6, 0, '#ff0054', 12, 'enemy'));
-            projectiles.push(new Projectile(this.x + this.w - 10, this.y + this.h - 10, 6, 0, '#ff0054', 12, 'enemy'));
+            const waveSpeed = difficulty === 'nightmare' ? 8.5 : 6;
+            projectiles.push(new Projectile(this.x + 10, this.y + this.h - 10, -waveSpeed, 0, '#ff0054', 12, 'enemy'));
+            projectiles.push(new Projectile(this.x + this.w - 10, this.y + this.h - 10, waveSpeed, 0, '#ff0054', 12, 'enemy'));
         }
 
-        // ATTACK PATTERNS PER PHASE
-        const shootInterval = this.phase === 3 ? 1.1 : (this.phase === 2 ? 1.6 : 2.2);
+        // ATTACK PATTERNS PER PHASE (Scaled by difficulty)
+        let shootInterval = this.phase === 3 ? 1.1 : (this.phase === 2 ? 1.6 : 2.2);
+        if (difficulty === 'nightmare') shootInterval *= 0.65;
+        else if (difficulty === 'hard') shootInterval *= 0.85;
+        else if (difficulty === 'easy') shootInterval *= 1.35;
+
         this.shootTimer += dt;
 
         if (this.shootTimer > shootInterval) {
@@ -883,51 +893,57 @@ class Enemy {
             window.soundEngine.playAttack();
 
             if (this.phase === 1) {
-                // Dual high-speed laser spread + ground pulse
-                const angles = [-0.22, 0, 0.22];
+                // Dual/Triple laser spread + ground pulse
+                const angles = difficulty === 'nightmare' ? [-0.35, -0.18, 0, 0.18, 0.35] : [-0.22, 0, 0.22];
                 const dir = player.x < this.x ? -1 : 1;
+                const spd = difficulty === 'nightmare' ? 6.5 : 5.2;
                 angles.forEach(ang => {
-                    projectiles.push(new Projectile(this.x + this.w * 0.5, this.y + 40, dir * 5.2 * Math.cos(ang), 5.2 * Math.sin(ang), '#ff0054', 10, 'enemy'));
+                    projectiles.push(new Projectile(this.x + this.w * 0.5, this.y + 40, dir * spd * Math.cos(ang), spd * Math.sin(ang), '#ff0054', 10, 'enemy'));
                 });
 
                 // Ground pulse
-                projectiles.push(new Projectile(this.x + this.w * 0.5, this.y + this.h - 15, dir * 5.5, 0, '#ff758c', 10, 'enemy'));
+                projectiles.push(new Projectile(this.x + this.w * 0.5, this.y + this.h - 15, dir * (spd + 0.5), 0, '#ff758c', 10, 'enemy'));
             } else if (this.phase === 2) {
-                // Sky Meteor Rain (4 meteors falling from top)
-                for (let i = 0; i < 4; i++) {
-                    const dropX = player.x + (i - 1.5) * 140;
-                    projectiles.push(new Projectile(dropX, this.y - 300, (Math.random() - 0.5) * 1.5, 5.5, '#9d4edd', 12, 'enemy'));
+                // Sky Meteor Rain
+                const meteorCount = difficulty === 'nightmare' ? 6 : 4;
+                for (let i = 0; i < meteorCount; i++) {
+                    const dropX = player.x + (i - (meteorCount - 1) * 0.5) * 120;
+                    projectiles.push(new Projectile(dropX, this.y - 300, (Math.random() - 0.5) * 1.5, difficulty === 'nightmare' ? 7.2 : 5.5, '#9d4edd', 12, 'enemy'));
                 }
 
-                // 8-Way Radial Energy Burst
-                for (let i = 0; i < 8; i++) {
-                    const angle = (Math.PI * 2 / 8) * i;
-                    projectiles.push(new Projectile(this.x + this.w * 0.5, this.y + 50, Math.cos(angle) * 4.8, Math.sin(angle) * 4.8, '#ff5400', 10, 'enemy'));
+                // Radial Energy Burst
+                const burstCount = difficulty === 'nightmare' ? 12 : 8;
+                for (let i = 0; i < burstCount; i++) {
+                    const angle = (Math.PI * 2 / burstCount) * i;
+                    projectiles.push(new Projectile(this.x + this.w * 0.5, this.y + 50, Math.cos(angle) * 5.2, Math.sin(angle) * 5.2, '#ff5400', 10, 'enemy'));
                 }
             } else if (this.phase === 3) {
-                // FRENZY OVERDRIVE: Rapid 5-shot homing barrage + dual ground sweep
-                for (let i = -2; i <= 2; i++) {
+                // FRENZY OVERDRIVE: Rapid homing barrage + dual ground sweep
+                const homingCount = difficulty === 'nightmare' ? 7 : 5;
+                for (let i = 0; i < homingCount; i++) {
                     const dx = player.x - this.x;
                     const dy = player.y - this.y;
                     const dist = Math.hypot(dx, dy) || 1;
-                    const spd = 6.8;
-                    projectiles.push(new Projectile(this.x + this.w * 0.5, this.y + 45, (dx / dist) * spd + i * 1.4, (dy / dist) * spd + (Math.random() - 0.5) * 2, '#ff0054', 12, 'enemy'));
+                    const spd = difficulty === 'nightmare' ? 8.2 : 6.8;
+                    const spread = (i - (homingCount - 1) * 0.5) * 1.2;
+                    projectiles.push(new Projectile(this.x + this.w * 0.5, this.y + 45, (dx / dist) * spd + spread, (dy / dist) * spd + (Math.random() - 0.5) * 2, '#ff0054', 12, 'enemy'));
                 }
 
                 // Ground sweep waves
-                projectiles.push(new Projectile(this.x + this.w * 0.5, this.y + this.h - 15, -7, 0, '#ffb703', 12, 'enemy'));
-                projectiles.push(new Projectile(this.x + this.w * 0.5, this.y + this.h - 15, 7, 0, '#ffb703', 12, 'enemy'));
+                const sweepSpd = difficulty === 'nightmare' ? 8.5 : 7;
+                projectiles.push(new Projectile(this.x + this.w * 0.5, this.y + this.h - 15, -sweepSpd, 0, '#ffb703', 12, 'enemy'));
+                projectiles.push(new Projectile(this.x + this.w * 0.5, this.y + this.h - 15, sweepSpd, 0, '#ffb703', 12, 'enemy'));
             }
         }
     }
 
-    takeDamage(amount, player, isUltimate = false) {
+    takeDamage(amount = 1, player = null, isUltimate = false) {
         if (this.isDead) return;
 
-        // Shield Guard: blocks front hits unless player is dashing or behind him or is ultimate
-        if (this.type === 'knight' && !isUltimate) {
-            const isFacingPlayer = (this.facingRight && player.x > this.x) || (!this.facingRight && player.x < this.x);
-            if (isFacingPlayer && !player.isDashing && player.y + player.h > this.y + 10) {
+        // Shield Knight Blocks non-ultimate frontal attacks
+        if (this.type === 'knight' && !isUltimate && player) {
+            const attackingFromFront = (player.x < this.x && !this.facingRight) || (player.x > this.x && this.facingRight);
+            if (attackingFromFront) {
                 window.soundEngine.playHit();
                 window.particleSystem.emitHitSparks(this.x + this.w * 0.5, this.y + this.h * 0.5, '#ffffff');
                 return; // Shield Blocked!
@@ -944,24 +960,42 @@ class Enemy {
             player.chargeUltimate(1);
         }
 
-        // Boss drops hearts on phase transitions
+        const difficulty = (window.gameManager && window.gameManager.saveData.difficulty) || 'medium';
+
+        // Boss drops hearts on phase transitions based on difficulty
         if (this.type === 'boss' && this.hp > 0) {
             const hpRatio = this.hp / this.maxHp;
-            if (hpRatio <= 0.66 && !this.droppedHeartPhase2) {
-                this.droppedHeartPhase2 = true;
-                this.phase = 2;
-                if (window.gameEngine) {
-                    window.gameEngine.collectibles.push(new Collectible({ x: this.x - 70, y: this.y + 20, type: 'heart' }));
-                    window.gameEngine.collectibles.push(new Collectible({ x: this.x + 70, y: this.y + 20, type: 'heart' }));
-                    if (window.gameManager) window.gameManager.showToast('💖 التنين يترنح! سقطت بلورات شفاء!');
+            if (difficulty !== 'nightmare') {
+                const heartsToDrop = difficulty === 'easy' ? 3 : (difficulty === 'hard' ? 1 : 2);
+                if (hpRatio <= 0.66 && !this.droppedHeartPhase2) {
+                    this.droppedHeartPhase2 = true;
+                    this.phase = 2;
+                    if (window.gameEngine) {
+                        for (let k = 0; k < heartsToDrop; k++) {
+                            window.gameEngine.collectibles.push(new Collectible({ x: this.x - 70 + k * 50, y: this.y + 20, type: 'heart' }));
+                        }
+                        if (window.gameManager) window.gameManager.showToast('💖 التنين يترنح! سقطت بلورات شفاء!');
+                    }
+                } else if (hpRatio <= 0.33 && !this.droppedHeartPhase3) {
+                    this.droppedHeartPhase3 = true;
+                    this.phase = 3;
+                    if (window.gameEngine) {
+                        for (let k = 0; k < heartsToDrop; k++) {
+                            window.gameEngine.collectibles.push(new Collectible({ x: this.x - 70 + k * 50, y: this.y + 20, type: 'heart' }));
+                        }
+                        if (window.gameManager) window.gameManager.showToast('💖 غضب التنين الأسطوري! سقطت قلوب إضافية!');
+                    }
                 }
-            } else if (hpRatio <= 0.33 && !this.droppedHeartPhase3) {
-                this.droppedHeartPhase3 = true;
-                this.phase = 3;
-                if (window.gameEngine) {
-                    window.gameEngine.collectibles.push(new Collectible({ x: this.x - 90, y: this.y + 20, type: 'heart' }));
-                    window.gameEngine.collectibles.push(new Collectible({ x: this.x + 90, y: this.y + 20, type: 'heart' }));
-                    if (window.gameManager) window.gameManager.showToast('💖 غضب التنين الأسطوري! سقطت قلوب إضافية!');
+            } else {
+                // In Nightmare: ZERO HEARTS!
+                if (hpRatio <= 0.66 && !this.droppedHeartPhase2) {
+                    this.droppedHeartPhase2 = true;
+                    this.phase = 2;
+                    if (window.gameManager) window.gameManager.showToast('🔥 غضب التنين يتصاعد إلى الطور الثاني! (لا توجد قلوب!)');
+                } else if (hpRatio <= 0.33 && !this.droppedHeartPhase3) {
+                    this.droppedHeartPhase3 = true;
+                    this.phase = 3;
+                    if (window.gameManager) window.gameManager.showToast('💀 هيجان التنين الأسطوري الأعظم! (حارب للبقاء!)');
                 }
             }
         }
@@ -969,6 +1003,18 @@ class Enemy {
         if (this.hp <= 0) {
             this.isDead = true;
             window.soundEngine.playCoin();
+
+            // Random enemy heart drops based on difficulty
+            if (difficulty === 'easy' && Math.random() < 0.25 && this.type !== 'boss') {
+                if (window.gameEngine) {
+                    window.gameEngine.collectibles.push(new Collectible({ x: this.x, y: this.y, type: 'heart' }));
+                }
+            } else if (difficulty === 'medium' && Math.random() < 0.08 && this.type !== 'boss') {
+                if (window.gameEngine) {
+                    window.gameEngine.collectibles.push(new Collectible({ x: this.x, y: this.y, type: 'heart' }));
+                }
+            }
+
             if (!isUltimate && player && player.chargeUltimate) {
                 player.chargeUltimate(this.type === 'boss' ? 15 : (this.type === 'knight' || this.type === 'turret' ? 8 : 5));
             }

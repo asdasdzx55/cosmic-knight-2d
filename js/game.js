@@ -23,6 +23,7 @@ class GameManager {
             equippedTrail: 'cyan',
             ownedTrails: ['cyan'],
             upgrades: { maxHpPlus: false, dashCooldownPlus: false },
+            difficulty: 'medium',
             isMuted: false,
             lang: 'ar'
         };
@@ -43,6 +44,45 @@ class GameManager {
         // Start 60 FPS Game Loop
         this.lastTime = performance.now();
         requestAnimationFrame(this.gameLoop.bind(this));
+    }
+
+    initUI() {
+        this.updateDifficultyUI();
+        this.updateMenuStats();
+    }
+
+    setDifficulty(diff) {
+        if (!['easy', 'medium', 'hard', 'nightmare'].includes(diff)) diff = 'medium';
+        this.saveData.difficulty = diff;
+        this.persistSaveData();
+        this.updateDifficultyUI();
+        const names = {
+            easy: '🟢 سهل (قلوب وفيرة وضرر منخفض)',
+            medium: '🟡 وسط (تجربة متوازنة)',
+            hard: '🟠 صعب (تحدٍ قوي)',
+            nightmare: '💀 صعب جداً (مستحيل تلاقي قلوب + تنين هائج!)'
+        };
+        this.showToast(`تم ضبط الصعوبة: ${names[diff]}`);
+    }
+
+    updateDifficultyUI() {
+        const diff = this.saveData.difficulty || 'medium';
+        document.querySelectorAll('.btn-diff-select').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.diff === diff);
+        });
+        document.querySelectorAll('.stage-diff-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.diff === diff);
+        });
+        const hudBadge = document.getElementById('hud-difficulty-badge');
+        if (hudBadge) {
+            const labels = {
+                easy: '🟢 سهل',
+                medium: '🟡 وسط',
+                hard: '🟠 صعب',
+                nightmare: '💀 صعب جداً'
+            };
+            hudBadge.innerText = labels[diff] || '🟡 وسط';
+        }
     }
 
     // ================= SAVE DATA PERSISTENCE =================
@@ -576,6 +616,15 @@ class GameManager {
         document.getElementById('btn-menu-stages').onclick = () => this.showScreen('screen-stages');
         document.getElementById('btn-menu-shop').onclick = () => this.showScreen('screen-shop');
         document.getElementById('btn-menu-how').onclick = () => this.showScreen('screen-how');
+
+        // Difficulty Selector Buttons (Main Menu & Stages Screen)
+        document.querySelectorAll('.btn-diff-select, .stage-diff-btn').forEach(btn => {
+            btn.onclick = () => {
+                const selectedDiff = btn.dataset.diff;
+                this.setDifficulty(selectedDiff);
+                if (window.soundEngine) window.soundEngine.playCoin();
+            };
+        });
 
         // Back Buttons
         document.getElementById('btn-stages-back').onclick = () => this.showScreen('screen-main-menu');

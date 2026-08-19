@@ -506,12 +506,12 @@ const GAME_LEVELS = [
     },
 
     // ==========================================
-    // STAGE 8: SANCTUM OF THE COSMIC VOID (محراب الفراغ الكوني)
+    // STAGE 8: CITADEL OF THE COSMIC VOID (معقل الفراغ الكوني)
     // ==========================================
     {
         id: 8,
-        titleAr: "محراب الفراغ الكوني",
-        titleEn: "Sanctum of the Void",
+        titleAr: "معقل الفراغ الكوني",
+        titleEn: "Citadel of the Void",
         biome: "void_sanctum",
         targetTime: 110,
         width: 3200,

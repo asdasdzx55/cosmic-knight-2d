@@ -80,6 +80,7 @@
                     <!-- Level & Stage Indicator -->
                     <div class="hud-group hud-stage-info">
                         <span id="hud-stage-name" class="hud-badge">المرحلة 1</span>
+                        <span id="hud-difficulty-badge" class="hud-badge hud-diff-badge">🟡 وسط</span>
                         <div id="hud-stars-tracker" class="hud-stars-mini">
                             <i class="fa-solid fa-star star-slot" id="star-slot-1"></i>
                             <i class="fa-solid fa-star star-slot" id="star-slot-2"></i>
@@ -187,6 +188,29 @@
                         <span><i class="fa-solid fa-star gold-text"></i> <span id="menu-total-stars">0/18</span></span>
                         <span><i class="fa-solid fa-coins gold-coin-icon"></i> <span id="menu-total-coins">0</span></span>
                     </div>
+
+                    <!-- DIFFICULTY SELECTOR -->
+                    <div class="difficulty-box">
+                        <span class="diff-header-label"><i class="fa-solid fa-shield-halved"></i> مستوى الصعوبة:</span>
+                        <div class="diff-buttons-row">
+                            <button class="btn-diff-select" data-diff="easy" id="diff-opt-easy" title="سهل: قلوب كثيرة وضرر منخفض">
+                                <span class="diff-title">🟢 سهل</span>
+                                <span class="diff-desc">قلوب وفيرة</span>
+                            </button>
+                            <button class="btn-diff-select active" data-diff="medium" id="diff-opt-medium" title="وسط: تجربة متوازنة">
+                                <span class="diff-title">🟡 وسط</span>
+                                <span class="diff-desc">متوازن</span>
+                            </button>
+                            <button class="btn-diff-select" data-diff="hard" id="diff-opt-hard" title="صعب: قلوب نادرة وأعداء أشرس">
+                                <span class="diff-title">🟠 صعب</span>
+                                <span class="diff-desc">تحدٍ قوي</span>
+                            </button>
+                            <button class="btn-diff-select" data-diff="nightmare" id="diff-opt-nightmare" title="صعب جداً: مستحيل تلاقي قلوب والتنين أشرس ما يمكن">
+                                <span class="diff-title">💀 صعب جداً</span>
+                                <span class="diff-desc">بدون قلوب</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="menu-card-right-col">
@@ -238,6 +262,17 @@
                     <div class="header-coin-badge">
                         <i class="fa-solid fa-coins gold-coin-icon"></i>
                         <span id="stages-coins">0</span>
+                    </div>
+                </div>
+
+                <!-- Stages Difficulty Selector Bar -->
+                <div class="stages-diff-bar">
+                    <span class="diff-bar-label">الصعوبة الحالية:</span>
+                    <div class="diff-bar-pills">
+                        <button class="stage-diff-btn" data-diff="easy" id="stage-diff-easy">🟢 سهل</button>
+                        <button class="stage-diff-btn active" data-diff="medium" id="stage-diff-medium">🟡 وسط</button>
+                        <button class="stage-diff-btn" data-diff="hard" id="stage-diff-hard">🟠 صعب</button>
+                        <button class="stage-diff-btn" data-diff="nightmare" id="stage-diff-nightmare">💀 صعب جداً</button>
                     </div>
                 </div>
 
@@ -475,22 +510,22 @@
         </div>
     </div>
 
-    <!-- Scripts with Cache Buster v7.0 -->
-    <script src="js/audio.js?v=7.0"></script>
-    <script src="js/particles.js?v=7.0"></script>
-    <script src="js/levels.js?v=7.0"></script>
-    <script src="js/entities.js?v=7.0"></script>
-    <script src="js/controls.js?v=7.0"></script>
-    <script src="js/engine.js?v=7.0"></script>
-    <script src="js/dialogue.js?v=7.0"></script>
-    <script src="js/game.js?v=7.0"></script>
+    <!-- Scripts with Cache Buster v8.0 -->
+    <script src="js/audio.js?v=8.0"></script>
+    <script src="js/particles.js?v=8.0"></script>
+    <script src="js/levels.js?v=8.0"></script>
+    <script src="js/entities.js?v=8.0"></script>
+    <script src="js/controls.js?v=8.0"></script>
+    <script src="js/engine.js?v=8.0"></script>
+    <script src="js/dialogue.js?v=8.0"></script>
+    <script src="js/game.js?v=8.0"></script>
 
     <!-- Service Worker & PWA Install Registration -->
     <script>
         // Register Service Worker for Offline PWA with auto-update
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js?v=7.0')
+                navigator.serviceWorker.register('./sw.js?v=8.0')
                     .then((reg) => {
                         console.log('[PWA] Service Worker registered! Scope:', reg.scope);
                         reg.update();

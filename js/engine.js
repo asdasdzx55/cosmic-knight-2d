@@ -53,10 +53,43 @@ class GameEngine {
             squashTimer: 0
         }));
 
+        const difficulty = (window.gameManager && window.gameManager.saveData.difficulty) || 'medium';
+
         this.hazards = [...levelData.hazards];
         this.checkpoints = levelData.checkpoints.map(cp => ({ ...cp, activated: false }));
-        this.collectibles = levelData.collectibles.map(c => new Collectible(c));
-        this.enemies = levelData.enemies.map(e => new Enemy(e.type, e.x, e.y, e.rangeX, e.maxHp));
+
+        // Handle Difficulty for Collectibles:
+        let cols = levelData.collectibles.map(c => ({ ...c }));
+        if (difficulty === 'nightmare') {
+            // "صعب جدا مستحيل تلاقي قلوب" -> Strip ALL hearts completely
+            cols = cols.filter(c => c.type !== 'heart');
+        } else if (difficulty === 'easy') {
+            // "سهل بتلاقي قلوب في جميع المراحل" -> Add extra hearts along the platforms
+            const heartStep = Math.max(380, Math.floor(levelData.width / 5));
+            for (let x = 250; x < levelData.width - 200; x += heartStep) {
+                if (!cols.some(c => c.type === 'heart' && Math.abs(c.x - x) < 180)) {
+                    cols.push({ x: x, y: 380, type: 'heart' });
+                }
+            }
+        }
+        this.collectibles = cols.map(c => new Collectible(c));
+
+        // Handle Enemies & Dragon Boss for Difficulty:
+        this.enemies = levelData.enemies.map(e => {
+            let maxHp = e.maxHp;
+            if (e.type === 'boss') {
+                if (difficulty === 'nightmare') maxHp = 90;
+                else if (difficulty === 'hard') maxHp = 70;
+                else if (difficulty === 'easy') maxHp = 40;
+                else maxHp = 60;
+            } else {
+                if (difficulty === 'nightmare') maxHp = Math.round((e.maxHp || 3) * 1.3);
+                else if (difficulty === 'easy') maxHp = Math.max(1, Math.round((e.maxHp || 3) * 0.75));
+            }
+            const enemy = new Enemy(e.type, e.x, e.y, e.rangeX, maxHp);
+            if (e.isDragon) enemy.isDragon = true;
+            return enemy;
+        });
         this.projectiles = [];
         this.exit = { ...levelData.exit };
 
