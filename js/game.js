@@ -889,10 +889,11 @@ class GameManager {
 
             // Endless wave progression
             if (this.isEndlessMode && this.state === 'PLAYING') {
-                if (this.engine.enemies.length > 0 && this.engine.enemies.every(e => e.isDead)) {
+                const waveCleared = (this.engine.enemies.length === 0) || this.engine.enemies.every(e => e.isDead);
+                if (waveCleared) {
                     if (!this.isWaveSpawning) {
                         this.isWaveSpawning = true;
-                        this.waveCooldownTimer = 1.8;
+                        this.waveCooldownTimer = 1.5;
                         this.survivalScore += this.currentWave * 250 + 100;
                         this.addCoins(this.currentWave * 8);
                         
