@@ -26,8 +26,25 @@
     <!-- FontAwesome for Game Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Google AdSense (ca-pub-1911478411926834) -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1911478411926834" crossorigin="anonymous"></script>
+    <!-- Google AdSense for Games (H5 Game Ads API: ca-pub-1911478411926834) -->
+    <script async
+        data-ad-client="ca-pub-1911478411926834"
+        data-ad-frequency-hint="30s"
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
+        crossorigin="anonymous">
+    </script>
+    <script>
+        window.adsbygoogle = window.adsbygoogle || [];
+        var adBreak = adConfig = function(o) { adsbygoogle.push(o); };
+        try {
+            adConfig({
+                preloadAdBreaks: 'on',
+                sound: 'on',
+            });
+        } catch (e) {
+            console.warn('[AdSense] H5 Game Ads init error:', e);
+        }
+    </script>
 
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -457,6 +474,15 @@
             <div class="modal-card ad-glass-card">
                 <div class="ad-card-badge"><i class="fa-solid fa-rectangle-ad"></i> إعلان فيديو بمكافأة • استعادة الحياة</div>
                 <div class="ad-video-mockup">
+                    <!-- Google AdSense Live Ad Container -->
+                    <div id="google-ad-container" style="min-height: 90px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center;">
+                        <ins class="adsbygoogle"
+                             style="display:block; width:100%; max-width:320px; height:100px;"
+                             data-ad-client="ca-pub-1911478411926834"
+                             data-ad-format="auto"
+                             data-full-width-responsive="true"></ins>
+                    </div>
+
                     <div class="ad-video-icon"><i class="fa-solid fa-shield-heart pulse-anim"></i></div>
                     <h3 class="ad-video-title">إحياء الفارس الكوني واستعادة كامل القلوب!</h3>
                     <p class="ad-video-desc" id="ad-status-msg">جاري تجهيز قلوب الشفاء ودرع الحصانة الذهبي...</p>

@@ -247,6 +247,15 @@ class GameManager {
         const adModal = document.getElementById('modal-rewarded-ad');
         if (adModal) adModal.classList.remove('hidden');
 
+        // Request Google AdSense to fill ad slot if available
+        try {
+            if (window.adsbygoogle && window.adsbygoogle.push) {
+                window.adsbygoogle.push({});
+            }
+        } catch (e) {
+            console.log('[AdSense] Live ad slot notice:', e);
+        }
+
         let secondsLeft = 5;
         const timerBadge = document.getElementById('ad-countdown-timer');
         const progressBar = document.getElementById('ad-progress-bar-fill');
@@ -260,7 +269,7 @@ class GameManager {
         }
         if (progressBar) progressBar.style.width = '0%';
         if (timerBadge) timerBadge.innerText = `${secondsLeft} ثوانٍ`;
-        if (statusMsg) statusMsg.innerText = 'جاري تحضير قلوب الشفاء وطاقة الفارس...';
+        if (statusMsg) statusMsg.innerText = 'جاري تجهيز قلوب الشفاء ودرع الحصانة الذهبي...';
 
         if (this.adInterval) clearInterval(this.adInterval);
         
