@@ -1132,7 +1132,6 @@ class Enemy {
         ctx.restore();
     }
 }
-}
 
 // ==========================================
 // PROJECTILE CLASS
