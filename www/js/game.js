@@ -844,26 +844,6 @@ class GameManager {
             this.persistSaveData();
         };
 
-        // Cinematic Motion Splash Enter Button
-        const motionEnterBtn = document.getElementById('btn-start-motion');
-        if (motionEnterBtn) {
-            motionEnterBtn.onclick = () => {
-                const splash = document.getElementById('screen-intro-motion');
-                if (splash) {
-                    splash.classList.add('fade-out');
-                    setTimeout(() => {
-                        splash.style.display = 'none';
-                    }, 600);
-                }
-                if (window.soundEngine) {
-                    window.soundEngine.initAudio();
-                    window.soundEngine.playLevelClear();
-                }
-                this.showScreen('screen-main-menu');
-                this.updateMenuHeroPreview();
-            };
-        }
-
         // Resize Canvas Viewport
         window.addEventListener('resize', this.resizeCanvas.bind(this));
         this.resizeCanvas();
@@ -873,11 +853,11 @@ class GameManager {
         const heroNameEl = document.getElementById('menu-hero-name');
         if (!heroNameEl) return;
         const skinNames = {
-            classic: 'الفارس السماوي (Classic Knight)',
+            classic: 'الفارس السماوي (Classic)',
             fire: 'الفارس الناري (Solar Blaze)',
             neon: 'الفارس النيوني (Cyber Cyber)',
-            ninja: 'النينجا الكوني (Shadow Shuriken)',
-            shadow: 'الفارس المظلم (Void Knight)'
+            ninja: 'النينجا الكوني (Shadow)',
+            shadow: 'الفارس المظلم (Void)'
         };
         heroNameEl.innerText = skinNames[this.saveData.selectedSkin] || skinNames.classic;
     }
@@ -902,11 +882,7 @@ class GameManager {
 
     initUI() {
         if (window.dialogueManager) window.dialogueManager.init();
-        const splash = document.getElementById('screen-intro-motion');
-        if (splash) {
-            splash.style.display = 'flex';
-            splash.classList.remove('fade-out');
-        }
+        this.showScreen('screen-main-menu');
         this.updateMenuHeroPreview();
     }
 

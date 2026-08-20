@@ -188,128 +188,98 @@
 
         <!-- ================= UI SCREENS & MODALS ================= -->
 
-        <!-- 0. CINEMATIC MOTION INTRO & SPLASH SCREEN -->
-        <div id="screen-intro-motion" class="intro-motion-screen">
-            <div class="motion-stars-backdrop"></div>
-            <div class="motion-nebula-glow"></div>
-            <div class="motion-content-card">
-                <div class="motion-crest-wrapper">
-                    <div class="motion-ring ring-outer"></div>
-                    <div class="motion-ring ring-middle"></div>
-                    <img src="icons/icon-512.png" alt="شعار فارس الأبعاد" class="motion-hero-emblem pulse-anim">
-                </div>
-                <div class="motion-text-block">
-                    <h1 class="motion-game-title">فارس الأبعاد</h1>
-                    <p class="motion-game-subtitle">COSMIC KNIGHT • 2D ADVENTURE</p>
-                </div>
-                <div class="motion-developer-credit">
-                    <i class="fa-solid fa-code"></i> برمجة وتطوير: <strong>أحمد عبد الوهاب</strong>
-                </div>
-                <button id="btn-start-motion" class="glow-btn motion-enter-btn pulse-anim">
-                    <i class="fa-solid fa-play"></i>
-                    <span>اضغط لدخول اللعبة ⚔️</span>
-                </button>
-            </div>
-        </div>
+        <!-- 1. RESPONSIVE ARCADE LANDSCAPE MAIN MENU -->
+        <div id="screen-main-menu" class="ui-screen active">
+            <div class="arcade-menu-frame">
+                <!-- Top Navigation & Stats Bar -->
+                <div class="arcade-top-bar">
+                    <div class="arcade-title-group">
+                        <img src="icons/icon-192.png" alt="Icon" class="arcade-logo-badge">
+                        <div class="arcade-title-text">
+                            <h1 class="arcade-game-name">فارس الأبعاد</h1>
+                            <span class="arcade-game-sub">COSMIC KNIGHT 2D</span>
+                        </div>
+                    </div>
 
-        <!-- 1. MODERNIZED RESPONSIVE LANDSCAPE MAIN MENU -->
-        <div id="screen-main-menu" class="ui-screen hidden">
-            <div class="menu-glass-card landscape-optimized-card">
-                <!-- Left Side: Brand, Stats & Difficulty -->
-                <div class="menu-card-left-col">
-                    <div class="game-logo-wrapper">
-                        <div class="brand-row">
-                            <img src="icons/icon-192.png" alt="Icon" class="menu-logo-img">
-                            <div class="brand-text">
-                                <h1 class="game-title">فارس الأبعاد</h1>
-                                <span class="game-subtitle">COSMIC KNIGHT 2D</span>
+                    <div class="arcade-stats-group">
+                        <div class="arcade-stat-badge" title="النجوم المحققة">
+                            <i class="fa-solid fa-star gold-text"></i>
+                            <span id="menu-total-stars">0 / 27</span>
+                        </div>
+                        <div class="arcade-stat-badge" title="العملات المجمعة">
+                            <i class="fa-solid fa-coins gold-coin-icon"></i>
+                            <span id="menu-total-coins">0</span>
+                        </div>
+                    </div>
+
+                    <div class="arcade-tools-group">
+                        <button id="btn-toggle-sound" class="arcade-tool-btn" title="كتم/تشغيل الصوت">
+                            <i class="fa-solid fa-volume-high" id="sound-icon"></i>
+                        </button>
+                        <button id="btn-toggle-fullscreen" class="arcade-tool-btn" title="ملء الشاشة">
+                            <i class="fa-solid fa-expand"></i>
+                        </button>
+                        <button id="btn-lang-toggle" class="arcade-tool-btn lang-btn" title="تغيير اللغة">AR / EN</button>
+                    </div>
+                </div>
+
+                <!-- Main Content Deck (2 Columns) -->
+                <div class="arcade-deck-grid">
+                    <!-- Left Deck: Hero Card & Difficulty Selection -->
+                    <div class="arcade-deck-col deck-left">
+                        <div class="arcade-hero-card">
+                            <div class="hero-avatar-circle">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <div class="hero-avatar-details">
+                                <span class="hero-card-title" id="menu-hero-name">الفارس السماوي (Classic)</span>
+                                <span class="hero-card-subtitle">⚡ قفز مزدوج • اندفاع • ضربة قاضية</span>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="menu-meta-row">
-                        <div class="developer-credit-tag">
-                            <i class="fa-solid fa-code"></i> تطوير: <strong>أحمد عبد الوهاب</strong>
+                        <div class="arcade-diff-container">
+                            <span class="arcade-diff-label"><i class="fa-solid fa-gauge-high"></i> مستوى الصعوبة:</span>
+                            <div class="arcade-diff-row">
+                                <button class="btn-diff-select" data-diff="easy" id="diff-opt-easy">🟢 سهل</button>
+                                <button class="btn-diff-select active" data-diff="medium" id="diff-opt-medium">🟡 وسط</button>
+                                <button class="btn-diff-select" data-diff="hard" id="diff-opt-hard">🟠 صعب</button>
+                                <button class="btn-diff-select" data-diff="nightmare" id="diff-opt-nightmare">💀 كابوس</button>
+                            </div>
                         </div>
-                        <div class="menu-stats-pill">
-                            <span><i class="fa-solid fa-star gold-text"></i> <span id="menu-total-stars">0/27</span></span>
-                            <span><i class="fa-solid fa-coins gold-coin-icon"></i> <span id="menu-total-coins">0</span></span>
-                        </div>
-                    </div>
 
-                    <!-- HERO AVATAR SHOWCASE IN MENU -->
-                    <div class="menu-hero-showcase">
-                        <div class="hero-showcase-avatar">
-                            <i class="fa-solid fa-shield-halved hero-avatar-icon"></i>
-                        </div>
-                        <div class="hero-showcase-info">
-                            <span class="hero-showcase-name" id="menu-hero-name">الفارس السماوي (Classic Knight)</span>
-                            <span class="hero-showcase-perk">⚡ قفز مزدوج • اندفاع • ضربة قاضية</span>
+                        <div class="arcade-dev-badge">
+                            <i class="fa-solid fa-code"></i> برمجة وتطوير: <strong>أحمد عبد الوهاب</strong>
                         </div>
                     </div>
 
-                    <!-- DIFFICULTY SELECTOR (Compact 4-Pill Grid) -->
-                    <div class="difficulty-box">
-                        <div class="diff-buttons-row">
-                            <button class="btn-diff-select" data-diff="easy" id="diff-opt-easy" title="سهل: قلوب وفيرة">
-                                <span class="diff-title">🟢 سهل</span>
-                            </button>
-                            <button class="btn-diff-select active" data-diff="medium" id="diff-opt-medium" title="وسط: متوازن">
-                                <span class="diff-title">🟡 وسط</span>
-                            </button>
-                            <button class="btn-diff-select" data-diff="hard" id="diff-opt-hard" title="صعب: قلوب نادرة">
-                                <span class="diff-title">🟠 صعب</span>
-                            </button>
-                            <button class="btn-diff-select" data-diff="nightmare" id="diff-opt-nightmare" title="كابوس: بدون قلوب">
-                                <span class="diff-title">💀 كابوس</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right Side: Big Action Buttons & Tools -->
-                <div class="menu-card-right-col">
-                    <div class="menu-actions">
-                        <button id="btn-menu-play" class="glow-btn primary-btn menu-main-play-btn pulse-anim">
+                    <!-- Right Deck: Primary Action Buttons -->
+                    <div class="arcade-deck-col deck-right">
+                        <button id="btn-menu-play" class="arcade-btn-play pulse-anim">
                             <i class="fa-solid fa-play"></i>
                             <span>بدء المغامرة الآن ⚔️</span>
                         </button>
-                        
-                        <div class="menu-sub-actions-row">
-                            <button id="btn-menu-stages" class="glow-btn secondary-btn">
+
+                        <div class="arcade-btn-row">
+                            <button id="btn-menu-stages" class="arcade-btn-sub">
                                 <i class="fa-solid fa-map-location-dot"></i>
                                 <span>المراحل 🗺️</span>
                             </button>
-                            <button id="btn-menu-shop" class="glow-btn secondary-btn">
+                            <button id="btn-menu-shop" class="arcade-btn-sub">
                                 <i class="fa-solid fa-store"></i>
                                 <span>المتجر 🛡️</span>
                             </button>
                         </div>
 
-                        <div class="menu-sub-actions-row">
-                            <button id="btn-menu-how" class="glow-btn tertiary-btn">
+                        <div class="arcade-btn-row">
+                            <button id="btn-menu-how" class="arcade-btn-sub tertiary">
                                 <i class="fa-solid fa-gamepad"></i>
-                                <span>التحكم 🎮</span>
+                                <span>طريقة اللعب 🎮</span>
                             </button>
-                            <a href="cosmic-knight.apk" download="cosmic-knight.apk" class="glow-btn apk-quick-btn" title="تحميل ملف الـ APK للأندرويد">
+                            <a href="cosmic-knight.apk" download="cosmic-knight.apk" class="arcade-btn-sub apk-btn">
                                 <i class="fa-brands fa-android"></i>
                                 <span>تحميل APK 📲</span>
                             </a>
                         </div>
-                    </div>
-
-                    <!-- Footer Quick Tools -->
-                    <div class="menu-footer-toolbar">
-                        <button id="btn-install-pwa" class="mini-text-btn pwa-install-btn" title="تنزيل اللعبة وتثبيتها للعب بدون إنترنت">
-                            <i class="fa-solid fa-download"></i> <span>تثبيت PWA</span>
-                        </button>
-                        <button id="btn-toggle-sound" class="mini-icon-btn" title="كتم/تشغيل الصوت">
-                            <i class="fa-solid fa-volume-high" id="sound-icon"></i>
-                        </button>
-                        <button id="btn-toggle-fullscreen" class="mini-icon-btn" title="ملء الشاشة">
-                            <i class="fa-solid fa-expand"></i>
-                        </button>
-                        <button id="btn-lang-toggle" class="mini-text-btn" title="تغيير اللغة">EN / عربي</button>
                     </div>
                 </div>
             </div>
