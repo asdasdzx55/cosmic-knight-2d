@@ -188,16 +188,42 @@
 
         <!-- ================= UI SCREENS & MODALS ================= -->
 
-        <!-- 1. MAIN MENU SCREEN -->
-        <div id="screen-main-menu" class="ui-screen active">
-            <div class="menu-glass-card">
+        <!-- 0. CINEMATIC MOTION INTRO & SPLASH SCREEN -->
+        <div id="screen-intro-motion" class="intro-motion-screen">
+            <div class="motion-stars-backdrop"></div>
+            <div class="motion-nebula-glow"></div>
+            <div class="motion-content-card">
+                <div class="motion-crest-wrapper">
+                    <div class="motion-ring ring-outer"></div>
+                    <div class="motion-ring ring-middle"></div>
+                    <div class="motion-ring ring-inner"></div>
+                    <img src="icons/icon-512.png" alt="شعار فارس الأبعاد" class="motion-hero-emblem pulse-anim">
+                </div>
+                <div class="motion-text-block">
+                    <span class="motion-tagline"><i class="fa-solid fa-wand-magic-sparkles"></i> مغامرة أسطورية في عوالم الأبعاد</span>
+                    <h1 class="motion-game-title">فارس الأبعاد</h1>
+                    <p class="motion-game-subtitle">COSMIC KNIGHT • 2D ADVENTURE</p>
+                </div>
+                <div class="motion-developer-credit">
+                    <i class="fa-solid fa-code"></i> برمجة وتطوير: <strong>أحمد عبد الوهاب</strong>
+                </div>
+                <button id="btn-start-motion" class="glow-btn motion-enter-btn pulse-anim">
+                    <i class="fa-solid fa-play"></i>
+                    <span>اضغط هنا لدخول المغامرة ⚔️</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 1. MODERNIZED MAIN MENU SCREEN -->
+        <div id="screen-main-menu" class="ui-screen hidden">
+            <div class="menu-glass-card modern-menu-card">
                 <div class="menu-card-left-col">
                     <div class="game-logo-wrapper">
                         <div class="game-icon-glow">
-                            <i class="fa-solid fa-shield-halved"></i>
+                            <img src="icons/icon-192.png" alt="Icon" class="menu-logo-img">
                         </div>
                         <h1 class="game-title">فارس الأبعاد</h1>
-                        <p class="game-subtitle">COSMIC KNIGHT • 2D ADVENTURE</p>
+                        <p class="game-subtitle">COSMIC KNIGHT • 2D DIMENSIONAL SAGA</p>
                     </div>
 
                     <div class="developer-credit-tag">
@@ -205,28 +231,40 @@
                     </div>
 
                     <div class="menu-stats-pill">
-                        <span><i class="fa-solid fa-star gold-text"></i> <span id="menu-total-stars">0/18</span></span>
+                        <span><i class="fa-solid fa-star gold-text"></i> <span id="menu-total-stars">0/27</span></span>
                         <span><i class="fa-solid fa-coins gold-coin-icon"></i> <span id="menu-total-coins">0</span></span>
+                    </div>
+
+                    <!-- HERO AVATAR SHOWCASE IN MENU -->
+                    <div class="menu-hero-showcase">
+                        <div class="hero-showcase-avatar">
+                            <i class="fa-solid fa-shield-halved hero-avatar-icon pulse-anim"></i>
+                            <div class="hero-avatar-halo"></div>
+                        </div>
+                        <div class="hero-showcase-info">
+                            <span class="hero-showcase-name" id="menu-hero-name">الفارس السماوي (Classic Knight)</span>
+                            <span class="hero-showcase-perk">⚡ قفز مزدوج • اندفاع كوني • ضربة قاضية</span>
+                        </div>
                     </div>
 
                     <!-- DIFFICULTY SELECTOR -->
                     <div class="difficulty-box">
-                        <span class="diff-header-label"><i class="fa-solid fa-shield-halved"></i> مستوى الصعوبة:</span>
+                        <span class="diff-header-label"><i class="fa-solid fa-shield-halved"></i> مستوى التحدي والصعوبة:</span>
                         <div class="diff-buttons-row">
-                            <button class="btn-diff-select" data-diff="easy" id="diff-opt-easy" title="سهل: قلوب كثيرة وضرر منخفض">
+                            <button class="btn-diff-select" data-diff="easy" id="diff-opt-easy" title="سهل: قلوب وفيرة وضرر خفيف">
                                 <span class="diff-title">🟢 سهل</span>
                                 <span class="diff-desc">قلوب وفيرة</span>
                             </button>
-                            <button class="btn-diff-select active" data-diff="medium" id="diff-opt-medium" title="وسط: تجربة متوازنة">
+                            <button class="btn-diff-select active" data-diff="medium" id="diff-opt-medium" title="وسط: تجربة متوازنة وحماسية">
                                 <span class="diff-title">🟡 وسط</span>
                                 <span class="diff-desc">متوازن</span>
                             </button>
-                            <button class="btn-diff-select" data-diff="hard" id="diff-opt-hard" title="صعب: قلوب نادرة وأعداء أشرس">
+                            <button class="btn-diff-select" data-diff="hard" id="diff-opt-hard" title="صعب: قلوب نادرة وأعداء شرسون">
                                 <span class="diff-title">🟠 صعب</span>
                                 <span class="diff-desc">تحدٍ قوي</span>
                             </button>
                             <button class="btn-diff-select" data-diff="nightmare" id="diff-opt-nightmare" title="صعب جداً: مستحيل تلاقي قلوب والتنين أشرس ما يمكن">
-                                <span class="diff-title">💀 صعب جداً</span>
+                                <span class="diff-title">💀 كابوس</span>
                                 <span class="diff-desc">بدون قلوب</span>
                             </button>
                         </div>
@@ -235,29 +273,41 @@
 
                 <div class="menu-card-right-col">
                     <div class="menu-actions">
-                        <button id="btn-menu-play" class="glow-btn primary-btn pulse-anim">
+                        <button id="btn-menu-play" class="glow-btn primary-btn menu-main-play-btn pulse-anim">
                             <i class="fa-solid fa-play"></i>
-                            <span>بدء المغامرة</span>
+                            <span>بدء المغامرة الآن ⚔️</span>
                         </button>
                         <div class="menu-sub-actions-row">
                             <button id="btn-menu-stages" class="glow-btn secondary-btn">
                                 <i class="fa-solid fa-map-location-dot"></i>
-                                <span>المراحل</span>
+                                <span>خريطة المراحل 🗺️</span>
                             </button>
                             <button id="btn-menu-shop" class="glow-btn secondary-btn">
                                 <i class="fa-solid fa-store"></i>
-                                <span>المتجر</span>
+                                <span>متجر الأبطال 🛡️</span>
                             </button>
                         </div>
                         <button id="btn-menu-how" class="glow-btn tertiary-btn">
                             <i class="fa-solid fa-gamepad"></i>
-                            <span>طريقة اللعب والتحكم</span>
+                            <span>طريقة اللعب والتحكم 🎮</span>
                         </button>
+                    </div>
+
+                    <!-- DIRECT APK & APP INSTALL BADGE -->
+                    <div class="menu-app-promo-card">
+                        <a href="cosmic-knight.apk" download="cosmic-knight.apk" class="apk-download-promo-btn" title="تحميل تطبيق الأندرويد الرسمي">
+                            <i class="fa-brands fa-android"></i>
+                            <div class="apk-promo-text">
+                                <span class="apk-promo-title">تطبيق الأندرويد الرسمي (APK)</span>
+                                <span class="apk-promo-sub">تشغيل بدون نت + إعلانات مكافأة 💖</span>
+                            </div>
+                            <i class="fa-solid fa-arrow-down-to-bracket apk-dl-arrow"></i>
+                        </a>
                     </div>
 
                     <div class="menu-footer-toolbar">
                         <button id="btn-install-pwa" class="mini-text-btn pwa-install-btn" title="تنزيل اللعبة وتثبيتها على الهاتف للعب بدون إنترنت">
-                            <i class="fa-solid fa-download"></i> <span>تثبيت اللعبة 📲</span>
+                            <i class="fa-solid fa-download"></i> <span>تثبيت PWA 📲</span>
                         </button>
                         <button id="btn-toggle-sound" class="mini-icon-btn" title="كتم/تشغيل الصوت">
                             <i class="fa-solid fa-volume-high" id="sound-icon"></i>
