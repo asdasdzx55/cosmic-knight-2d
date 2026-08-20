@@ -574,164 +574,6 @@ class GameManager {
         }
     }
 
-    // ================= REALTIME 2-PLAYER PVP MULTIPLAYER =================
-    initPvPMultiplayer() {
-        if (!window.multiplayerManager) return;
-        const mp = window.multiplayerManager;
-
-        mp.onOpponentStateCallback = (data) => {
-            if (this.engine && this.engine.remotePlayer) {
-                this.engine.remotePlayer.updateFromNetwork(data);
-            }
-        };
-
-        mp.onOpponentAttackCallback = () => {
-            if (this.engine && this.engine.remotePlayer) {
-                this.engine.remotePlayer.triggerAttack();
-            }
-        };
-
-        mp.onOpponentDamageCallback = (data) => {
-            if (this.player && this.state === 'PLAYING') {
-                this.player.takeDamage(data.amount || 1);
-            }
-        };
-
-        mp.onRoundEndCallback = (isWinnerMe, myScore, oppScore) => {
-            this.handlePvPRoundOver(isWinnerMe, myScore, oppScore);
-        };
-
-        mp.onDisconnectCallback = () => {
-            if (this.isPvP) {
-                this.showToast('⚠️ تم قطع اتصال اللاعب الآخر');
-                this.isPvP = false;
-                this.engine.remotePlayer = null;
-                this.showScreen('screen-pvp-lobby');
-            }
-        };
-    }
-
-    startDualLocalDuel() {
-        this.isPvP = true;
-        this.pvpP1Score = this.pvpP1Score || 0;
-        this.pvpP2Score = this.pvpP2Score || 0;
-        this.pvpCurrentRound = this.pvpCurrentRound || 1;
-
-        const arena = window.PVP_ARENAS ? window.PVP_ARENAS.pvp_arena_1 : null;
-        if (!arena) return;
-
-        this.applyUpgradesAndCustomization();
-
-        // Player 1 (Blue Knight)
-        this.player.maxHp = 3;
-        this.player.hp = 3;
-        this.player.ultimateEnergy = 0;
-        this.player.isDead = false;
-        this.player.x = arena.hostSpawn.x;
-        this.player.y = arena.hostSpawn.y;
-        this.player.vx = 0;
-        this.player.vy = 0;
-        this.player.facingRight = true;
-
-        // Player 2 (Red Knight)
-        this.engine.player2 = new Player(arena.guestSpawn.x, arena.guestSpawn.y);
-        this.engine.player2.skin = 'fire';
-        this.engine.player2.maxHp = 3;
-        this.engine.player2.hp = 3;
-        this.engine.player2.ultimateEnergy = 0;
-        this.engine.player2.isDead = false;
-        this.engine.player2.facingRight = false;
-
-        this.engine.loadLevel(arena, this.player);
-        this.engine.enemies = []; // Pure PvP duel
-
-        // Hide Single-Player HUD & Show PvP HUD
-        const pvpHud = document.getElementById('pvp-hud-bar');
-        if (pvpHud) pvpHud.classList.remove('hidden');
-        const bossHud = document.getElementById('boss-hud-bar');
-        if (bossHud) bossHud.classList.add('hidden');
-
-        const hudTopLeft = document.querySelector('.hud-top-left');
-        if (hudTopLeft) hudTopLeft.style.visibility = 'hidden';
-        const hudTopCenter = document.querySelector('.hud-top-center');
-        if (hudTopCenter) hudTopCenter.style.visibility = 'hidden';
-
-        // Switch Touch Controls Layer (Single-player vs Dual-player)
-        const normalTouch = document.getElementById('touch-controls');
-        if (normalTouch) normalTouch.style.display = 'none';
-        const dualTouch = document.getElementById('dual-touch-controls');
-        if (dualTouch) dualTouch.style.display = 'flex';
-
-        this.updatePvPHUD();
-
-        this.showScreen('NONE');
-        this.state = 'PLAYING';
-
-        if (window.soundEngine) {
-            window.soundEngine.playLevelClear();
-        }
-        this.showToast(`⚔️ الجولة ${this.pvpCurrentRound} - قاتل!`);
-    }
-
-    updatePvPHUD() {
-        if (!this.isPvP) return;
-
-        // Player 1 (Blue) Hearts
-        const p1Container = document.getElementById('pvp-p1-hearts');
-        if (p1Container) {
-            p1Container.innerHTML = '';
-            for (let i = 0; i < 3; i++) {
-                const h = document.createElement('i');
-                h.className = 'fa-solid fa-heart ' + (i < this.player.hp ? 'heart-active' : 'heart-empty');
-                p1Container.appendChild(h);
-            }
-        }
-
-        // Player 2 (Red) Hearts
-        const p2Container = document.getElementById('pvp-p2-hearts');
-        if (p2Container && this.engine.player2) {
-            p2Container.innerHTML = '';
-            for (let i = 0; i < 3; i++) {
-                const h = document.createElement('i');
-                h.className = 'fa-solid fa-heart ' + (i < this.engine.player2.hp ? 'heart-active' : 'heart-empty');
-                p2Container.appendChild(h);
-            }
-        }
-
-        const p1ScoreEl = document.getElementById('pvp-p1-score');
-        if (p1ScoreEl) p1ScoreEl.innerText = this.pvpP1Score || 0;
-
-        const p2ScoreEl = document.getElementById('pvp-p2-score');
-        if (p2ScoreEl) p2ScoreEl.innerText = this.pvpP2Score || 0;
-
-        const roundTag = document.getElementById('pvp-round-tag');
-        if (roundTag) roundTag.innerText = 'الجولة ' + (this.pvpCurrentRound || 1);
-    }
-
-    handlePvPRoundOver(p1Won, p1Score, p2Score) {
-        this.state = 'ROUND_OVER';
-        this.updatePvPHUD();
-
-        const targetScore = 2; // Best of 3
-        if (p1Score >= targetScore || p2Score >= targetScore) {
-            const p1MatchWinner = p1Score > p2Score;
-            document.getElementById('pvp-result-title').innerText = p1MatchWinner ? '👑 فاز اللاعب 1 (الفارس السماوي) بالنزال!' : '🔥 فاز اللاعب 2 (الفارس الناري) بالنزال!';
-            document.getElementById('pvp-result-desc').innerText = p1MatchWinner ? 'أداء بطولي رائع وتتويج مستحق للاعب الأول!' : 'نزال أسطوري وانتصار ساحق للاعب الثاني!';
-            document.getElementById('pvp-final-p1-score').innerText = p1Score;
-            document.getElementById('pvp-final-p2-score').innerText = p2Score;
-            this.showModal('modal-pvp-victory');
-            if (window.soundEngine) {
-                window.soundEngine.playLevelClear();
-            }
-        } else {
-            this.pvpCurrentRound = (this.pvpCurrentRound || 1) + 1;
-            this.showToast(p1Won ? '👑 فاز اللاعب 1 بهذه الجولة!' : '🔥 فاز اللاعب 2 بهذه الجولة!');
-            setTimeout(() => {
-                if (this.isPvP) this.startDualLocalDuel();
-            }, 1800);
-        }
-    }
-
     formatTime(seconds) {
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
@@ -990,90 +832,6 @@ class GameManager {
         document.getElementById('btn-gameover-stages').onclick = () => { this.hideAllModals(); this.showScreen('screen-stages'); };
         document.getElementById('btn-gameover-menu').onclick = () => { this.hideAllModals(); this.showScreen('screen-main-menu'); };
 
-        // PvP Lobby & Match Buttons
-        const btnPvP = document.getElementById('btn-menu-pvp');
-        if (btnPvP) btnPvP.onclick = () => this.showScreen('screen-pvp-lobby');
-
-        const btnPvPBack = document.getElementById('btn-pvp-back');
-        if (btnPvPBack) btnPvPBack.onclick = () => {
-            this.showScreen('screen-main-menu');
-            if (window.multiplayerManager) window.multiplayerManager.cleanup();
-        };
-
-        const btnCreateRoom = document.getElementById('btn-create-pvp-room');
-        if (btnCreateRoom) {
-            btnCreateRoom.onclick = () => {
-                const codeEl = document.getElementById('host-room-code');
-                const statusEl = document.getElementById('host-status-msg');
-                const qrContainer = document.getElementById('host-qrcode');
-                const copyBtn = document.getElementById('btn-copy-pvp-link');
-
-                if (statusEl) statusEl.innerText = '⏳ جاري إنشاء الغرفة...';
-                window.multiplayerManager.createRoom(this.saveData.selectedSkin, (code, joinUrl) => {
-                    if (codeEl) codeEl.innerText = code;
-                    if (statusEl) statusEl.innerText = '✅ الغرفة جاهزة! امسح الرمز أو شارك الكود ' + code;
-                    const netStatus = document.getElementById('pvp-net-status');
-                    if (netStatus) netStatus.innerText = 'الغرفة: ' + code;
-
-                    // Generate QR Code
-                    if (qrContainer && typeof QRCode !== 'undefined') {
-                        qrContainer.innerHTML = '';
-                        new QRCode(qrContainer, {
-                            text: joinUrl,
-                            width: 100,
-                            height: 100,
-                            colorDark: "#040814",
-                            colorLight: "#ffffff",
-                            correctLevel: QRCode.CorrectLevel.M
-                        });
-                    }
-
-        // ================= PVP SHARED SCREEN COMBAT EVENTS =================
-        const btnMenuPvP = document.getElementById('btn-menu-pvp');
-        if (btnMenuPvP) {
-            btnMenuPvP.onclick = () => {
-                this.showScreen('screen-pvp-lobby');
-            };
-        }
-
-        const btnStartDual = document.getElementById('btn-start-dual-pvp');
-        if (btnStartDual) {
-            btnStartDual.onclick = () => {
-                this.pvpP1Score = 0;
-                this.pvpP2Score = 0;
-                this.pvpCurrentRound = 1;
-                this.startDualLocalDuel();
-            };
-        }
-
-        const btnPvPBack = document.getElementById('btn-pvp-back');
-        if (btnPvPBack) {
-            btnPvPBack.onclick = () => {
-                this.showScreen('screen-main-menu');
-            };
-        }
-
-        const btnPvPRematch = document.getElementById('btn-pvp-rematch');
-        if (btnPvPRematch) {
-            btnPvPRematch.onclick = () => {
-                this.hideAllModals();
-                this.pvpP1Score = 0;
-                this.pvpP2Score = 0;
-                this.pvpCurrentRound = 1;
-                this.startDualLocalDuel();
-            };
-        }
-
-        const btnPvPMenu = document.getElementById('btn-pvp-menu');
-        if (btnPvPMenu) {
-            btnPvPMenu.onclick = () => {
-                this.isPvP = false;
-                this.engine.player2 = null;
-                this.hideAllModals();
-                this.showScreen('screen-main-menu');
-            };
-        }
-
         // Ultimate Touch Button Direct Click Trigger
         const ultBtn = document.getElementById('btn-ultimate');
         if (ultBtn) {
@@ -1165,36 +923,21 @@ class GameManager {
         if (this.state === 'PLAYING') {
             this.levelTimer += dt;
 
-            // Shared Screen 2-Player Combat Round Check
-            if (this.isPvP && this.engine.player2) {
-                if ((this.player.isDead || this.engine.player2.isDead) && this.state === 'PLAYING') {
-                    this.state = 'ROUND_OVER';
-                    const p1Won = !this.player.isDead && this.engine.player2.isDead;
-                    const p2Won = this.player.isDead && !this.engine.player2.isDead;
-                    if (p1Won) this.pvpP1Score = (this.pvpP1Score || 0) + 1;
-                    else if (p2Won) this.pvpP2Score = (this.pvpP2Score || 0) + 1;
-                    this.handlePvPRoundOver(p1Won, this.pvpP1Score || 0, this.pvpP2Score || 0);
-                }
-                this.updatePvPHUD();
-            }
-
             // Engine update & render
             this.engine.update(dt, this.player, window.inputController.state);
             this.engine.render(this.player);
 
             // HUD update
-            if (!this.isPvP) {
-                this.updateHUD();
-            }
+            this.updateHUD();
 
-            // Check if player died in Single Player
-            if (this.player.isDead && this.state === 'PLAYING' && !this.isPvP) {
+            // Check if player died
+            if (this.player.isDead && this.state === 'PLAYING') {
                 this.gameOver();
             }
 
             // End frame inputs
             window.inputController.endFrame();
-        } else if (this.state === 'PAUSED' || this.state === 'VICTORY' || this.state === 'GAMEOVER' || this.state === 'DIALOGUE' || this.state === 'ROUND_OVER') {
+        } else if (this.state === 'PAUSED' || this.state === 'VICTORY' || this.state === 'GAMEOVER' || this.state === 'DIALOGUE') {
             this.engine.render(this.player);
         }
 
