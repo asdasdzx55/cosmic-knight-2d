@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#070b14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="فارس الأبعاد">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="فارس الأبعاد">
+    <meta name="description" content="فارس الأبعاد - لعبة مغامرات ومنصات 2D حماسية متعددة المراحل تعمل بدون إنترنت | برمجة وتطوير: أحمد عبد الوهاب">
+    <title>فارس الأبعاد | Cosmic Knight 2D - برمجة أحمد عبد الوهاب</title>
+    
+    <!-- PWA Manifest & App Icons -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon.png">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <!-- Google Fonts: Cairo for Arabic & Outfit for Game UI -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Game Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google AdSense for Games (H5 Game Ads API: ca-pub-1911478411926834) -->
+    <script async
+        data-ad-client="ca-pub-1911478411926834"
+        data-ad-frequency-hint="30s"
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
+        crossorigin="anonymous">
+    </script>
+    <script>
+        window.adsbygoogle = window.adsbygoogle || [];
+        var adBreak = adConfig = function(o) { adsbygoogle.push(o); };
+        try {
+            adConfig({
+                preloadAdBreaks: 'on',
+                sound: 'on',
+            });
+        } catch (e) {
+            console.warn('[AdSense] H5 Game Ads init error:', e);
+        }
+    </script>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Game Container -->
+    <div id="game-app">
+        <!-- MANDATORY LANDSCAPE LOCK SCREEN FOR MOBILE -->
+        <div id="landscape-blocker" class="landscape-blocker-screen hidden">
+            <div class="landscape-lock-box">
+                <div class="phone-rotate-anim">
+                    <div class="phone-model">
+                        <i class="fa-solid fa-gamepad game-icon-phone"></i>
+                    </div>
+                    <i class="fa-solid fa-rotate-right rotate-arrow-anim"></i>
+                </div>
+                <h2 class="rotate-title">يرجى تدوير الهاتف للوضع الأفقي 📱↔️</h2>
+                <p class="rotate-desc">لعبة <strong>فارس الأبعاد</strong> مصممة لتعمل بالوضع العرضي (Landscape) لتجربة تحكم سينمائية احترافية وكاملة.</p>
+                <div class="rotate-badge">
+                    <i class="fa-solid fa-lock"></i> قم بتدوير جهازك الآن للبدء
+                </div>
+                <div class="rotate-credits-mini">
+                    برمجة وتطوير: <span>أحمد عبد الوهاب</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Canvas & Game Viewport -->
+        <div id="canvas-wrapper">
+            <canvas id="gameCanvas" width="960" height="540"></canvas>
+            
+            <!-- In-Game Heads Up Display (HUD) -->
+            <div id="hud-overlay" class="hidden">
+                <div class="hud-top-bar">
+                    <!-- Health, Energy & Ultimate -->
+                    <div class="hud-group hud-health-group">
+                        <div id="hud-hearts" class="hud-hearts" title="الصحة">
+                            <i class="fa-solid fa-heart heart-active"></i>
+                            <i class="fa-solid fa-heart heart-active"></i>
+                            <i class="fa-solid fa-heart heart-active"></i>
+                        </div>
+                        <div class="hud-dash-meter-container" title="طاقة الاندفاع">
+                            <div id="hud-dash-bar" class="hud-dash-bar"></div>
+                        </div>
+                        <!-- Ultimate Finisher Meter -->
+                        <div class="hud-ultimate-meter-container" title="الضربة القاضية الكونية (اضغط U / زر قاضية)">
+                            <div class="ultimate-bar-track">
+                                <div id="hud-ultimate-bar" class="hud-ultimate-bar" style="width: 0%;"></div>
+                            </div>
+                            <span class="ultimate-tag"><i class="fa-solid fa-bolt-lightning"></i></span>
+                        </div>
+                    </div>
+
+                    <!-- Level & Stage Indicator -->
+                    <div class="hud-group hud-stage-info">
+                        <span id="hud-stage-name" class="hud-badge">المرحلة 1</span>
+                        <span id="hud-difficulty-badge" class="hud-badge hud-diff-badge">🟡 وسط</span>
+                        <div id="hud-stars-tracker" class="hud-stars-mini">
+                            <i class="fa-solid fa-star star-slot" id="star-slot-1"></i>
+                            <i class="fa-solid fa-star star-slot" id="star-slot-2"></i>
+                            <i class="fa-solid fa-star star-slot" id="star-slot-3"></i>
+                        </div>
+                    </div>
+
+                    <!-- Coins, Score, and Quick Buttons -->
+                    <div class="hud-group hud-stats-group">
+                        <div class="hud-stat-pill" title="العملات">
+                            <i class="fa-solid fa-coins gold-coin-icon"></i>
+                            <span id="hud-coin-count">0</span>
+                        </div>
+                        <div class="hud-stat-pill hud-time-pill" title="الوقت">
+                            <i class="fa-regular fa-clock"></i>
+                            <span id="hud-timer">00:00</span>
+                        </div>
+                        <button id="hud-btn-pause" class="hud-icon-btn" title="إيقاف مؤقت (P / Esc)" aria-label="إيقاف مؤقت">
+                            <i class="fa-solid fa-pause"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Boss Health Bar -->
+                <div id="boss-hud-bar" class="boss-hud-container hidden">
+                    <div class="boss-header">
+                        <span id="boss-name" class="boss-title">التنين الكوني الأسطوري (The Cosmic Dragon Sovereign) 🐉🔥</span>
+                        <span id="boss-phase-badge" class="boss-phase">الطور 1</span>
+                    </div>
+                    <div class="boss-bar-track">
+                        <div id="boss-hp-fill" class="boss-bar-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRO MOBILE VIRTUAL CONTROLS (Console Grade) -->
+            <div id="touch-controls" class="touch-controls-layer">
+                <!-- Left: Pro 4-Way Analog Joystick (Up=Jump, Down, Left, Right) -->
+                <div class="pro-joystick-wrapper" id="joystick-touch-zone">
+                    <div class="joystick-base" id="joystick-base">
+                        <div class="joystick-ring-glow"></div>
+                        <!-- Direction Arrow Indicators -->
+                        <div class="dpad-dir-indicator dir-up" id="dpad-ind-up"><i class="fa-solid fa-caret-up"></i><span class="ind-sub">قفز</span></div>
+                        <div class="dpad-dir-indicator dir-left" id="dpad-ind-left"><i class="fa-solid fa-caret-left"></i></div>
+                        <div class="dpad-dir-indicator dir-right" id="dpad-ind-right"><i class="fa-solid fa-caret-right"></i></div>
+                        <div class="dpad-dir-indicator dir-down" id="dpad-ind-down"><i class="fa-solid fa-caret-down"></i></div>
+                        <!-- Floating Thumbstick Knob -->
+                        <div class="joystick-thumb" id="joystick-thumb">
+                            <div class="thumb-core"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Action Buttons (ATTACK, DASH, and ULTIMATE FINISHER) -->
+                <div class="touch-actions-duo">
+                    <!-- 1. DASH Button (Amber Gold) -->
+                    <button class="duo-action-btn btn-duo-dash" id="btn-dash" aria-label="اندفاع">
+                        <div class="duo-btn-glow ring-dash"></div>
+                        <div class="duo-btn-content">
+                            <i class="fa-solid fa-bolt-lightning"></i>
+                            <span class="duo-btn-text">اندفاع</span>
+                        </div>
+                    </button>
+
+                    <!-- 2. ULTIMATE FINISHER Button (Cosmic Violet - Unlocks at 100%) -->
+                    <button class="duo-action-btn btn-duo-ultimate" id="btn-ultimate" aria-label="الضربة القاضية">
+                        <div class="duo-btn-glow ring-ultimate"></div>
+                        <div class="duo-btn-content">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span class="duo-btn-text">قاضية</span>
+                        </div>
+                    </button>
+
+                    <!-- 3. ATTACK Button (Crimson Ruby) -->
+                    <button class="duo-action-btn btn-duo-attack" id="btn-attack" aria-label="هجوم بالسيف">
+                        <div class="duo-btn-glow ring-attack"></div>
+                        <div class="duo-btn-content">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span class="duo-btn-text">سيف</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= UI SCREENS & MODALS ================= -->
+
+        <!-- 1. MAIN MENU SCREEN -->
+        <div id="screen-main-menu" class="ui-screen active">
+            <div class="menu-glass-card">
+                <div class="menu-card-left-col">
+                    <div class="game-logo-wrapper">
+                        <div class="game-icon-glow">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <h1 class="game-title">فارس الأبعاد</h1>
+                        <p class="game-subtitle">COSMIC KNIGHT • 2D ADVENTURE</p>
+                    </div>
+
+                    <div class="developer-credit-tag">
+                        <i class="fa-solid fa-code"></i> برمجة وتطوير: <strong>أحمد عبد الوهاب</strong>
+                    </div>
+
+                    <div class="menu-stats-pill">
+                        <span><i class="fa-solid fa-star gold-text"></i> <span id="menu-total-stars">0/18</span></span>
+                        <span><i class="fa-solid fa-coins gold-coin-icon"></i> <span id="menu-total-coins">0</span></span>
+                    </div>
+
+                    <!-- DIFFICULTY SELECTOR -->
+                    <div class="difficulty-box">
+                        <span class="diff-header-label"><i class="fa-solid fa-shield-halved"></i> مستوى الصعوبة:</span>
+                        <div class="diff-buttons-row">
+                            <button class="btn-diff-select" data-diff="easy" id="diff-opt-easy" title="سهل: قلوب كثيرة وضرر منخفض">
+                                <span class="diff-title">🟢 سهل</span>
+                                <span class="diff-desc">قلوب وفيرة</span>
+                            </button>
+                            <button class="btn-diff-select active" data-diff="medium" id="diff-opt-medium" title="وسط: تجربة متوازنة">
+                                <span class="diff-title">🟡 وسط</span>
+                                <span class="diff-desc">متوازن</span>
+                            </button>
+                            <button class="btn-diff-select" data-diff="hard" id="diff-opt-hard" title="صعب: قلوب نادرة وأعداء أشرس">
+                                <span class="diff-title">🟠 صعب</span>
+                                <span class="diff-desc">تحدٍ قوي</span>
+                            </button>
+                            <button class="btn-diff-select" data-diff="nightmare" id="diff-opt-nightmare" title="صعب جداً: مستحيل تلاقي قلوب والتنين أشرس ما يمكن">
+                                <span class="diff-title">💀 صعب جداً</span>
+                                <span class="diff-desc">بدون قلوب</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-card-right-col">
+                    <div class="menu-actions">
+                        <button id="btn-menu-play" class="glow-btn primary-btn pulse-anim">
+                            <i class="fa-solid fa-play"></i>
+                            <span>بدء المغامرة</span>
+                        </button>
+                        <div class="menu-sub-actions-row">
+                            <button id="btn-menu-stages" class="glow-btn secondary-btn">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                                <span>المراحل</span>
+                            </button>
+                            <button id="btn-menu-shop" class="glow-btn secondary-btn">
+                                <i class="fa-solid fa-store"></i>
+                                <span>المتجر</span>
+                            </button>
+                        </div>
+                        <button id="btn-menu-how" class="glow-btn tertiary-btn">
+                            <i class="fa-solid fa-gamepad"></i>
+                            <span>طريقة اللعب والتحكم</span>
+                        </button>
+                    </div>
+
+                    <div class="menu-footer-toolbar">
+                        <button id="btn-install-pwa" class="mini-text-btn pwa-install-btn" title="تنزيل اللعبة وتثبيتها على الهاتف للعب بدون إنترنت">
+                            <i class="fa-solid fa-download"></i> <span>تثبيت اللعبة 📲</span>
+                        </button>
+                        <button id="btn-toggle-sound" class="mini-icon-btn" title="كتم/تشغيل الصوت">
+                            <i class="fa-solid fa-volume-high" id="sound-icon"></i>
+                        </button>
+                        <button id="btn-toggle-fullscreen" class="mini-icon-btn" title="ملء الشاشة">
+                            <i class="fa-solid fa-expand"></i>
+                        </button>
+                        <button id="btn-lang-toggle" class="mini-text-btn" title="تغيير اللغة">EN / عربي</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. STAGE SELECTION SCREEN -->
+        <div id="screen-stages" class="ui-screen hidden">
+            <div class="stages-glass-card">
+                <div class="screen-header">
+                    <button id="btn-stages-back" class="back-btn" aria-label="رجوع">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    <h2 class="screen-title"><i class="fa-solid fa-dungeon"></i> خريطة العوالم والمراحل</h2>
+                    <div class="header-coin-badge">
+                        <i class="fa-solid fa-coins gold-coin-icon"></i>
+                        <span id="stages-coins">0</span>
+                    </div>
+                </div>
+
+                <!-- Stages Difficulty Selector Bar -->
+                <div class="stages-diff-bar">
+                    <span class="diff-bar-label">الصعوبة الحالية:</span>
+                    <div class="diff-bar-pills">
+                        <button class="stage-diff-btn" data-diff="easy" id="stage-diff-easy">🟢 سهل</button>
+                        <button class="stage-diff-btn active" data-diff="medium" id="stage-diff-medium">🟡 وسط</button>
+                        <button class="stage-diff-btn" data-diff="hard" id="stage-diff-hard">🟠 صعب</button>
+                        <button class="stage-diff-btn" data-diff="nightmare" id="stage-diff-nightmare">💀 صعب جداً</button>
+                    </div>
+                </div>
+
+                <!-- Stages Grid (6 Levels) -->
+                <div class="stages-grid" id="stages-container">
+                    <!-- Dynamic level cards populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. SHOP & CUSTOMIZATION SCREEN -->
+        <div id="screen-shop" class="ui-screen hidden">
+            <div class="shop-glass-card">
+                <div class="screen-header">
+                    <button id="btn-shop-back" class="back-btn" aria-label="رجوع">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    <h2 class="screen-title"><i class="fa-solid fa-wand-sparkles"></i> المتجر وتخصيص الفارس</h2>
+                    <div class="header-coin-badge">
+                        <i class="fa-solid fa-coins gold-coin-icon"></i>
+                        <span id="shop-coins">0</span>
+                    </div>
+                </div>
+
+                <!-- Shop Tabs -->
+                <div class="shop-tabs">
+                    <button class="shop-tab active" data-tab="skins"><i class="fa-solid fa-user-ninja"></i> الأزياء والشخصيات</button>
+                    <button class="shop-tab" data-tab="trails"><i class="fa-solid fa-fire-flame-curved"></i> هالات الاندفاع</button>
+                    <button class="shop-tab" data-tab="upgrades"><i class="fa-solid fa-shield-heart"></i> الترقيات الدائمة</button>
+                </div>
+
+                <!-- Shop Grid Content -->
+                <div id="shop-items-container" class="shop-items-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. HOW TO PLAY & CONTROLS SCREEN -->
+        <div id="screen-how" class="ui-screen hidden">
+            <div class="info-glass-card">
+                <div class="screen-header">
+                    <button id="btn-how-back" class="back-btn" aria-label="رجوع">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    <h2 class="screen-title"><i class="fa-solid fa-gamepad"></i> دليل اللعب والتحكم</h2>
+                </div>
+
+                <div class="how-content-columns">
+                    <!-- Desktop Column -->
+                    <div class="how-col">
+                        <div class="col-title"><i class="fa-solid fa-laptop"></i> للكمبيوتر واللابتوب</div>
+                        <ul class="control-list">
+                            <li><kbd>A</kbd> <kbd>D</kbd> أو <kbd>⬅️</kbd> <kbd>➡️</kbd> <span>التحرك يميناً ويساراً</span></li>
+                            <li><kbd>W</kbd> أو <kbd>Space</kbd> <span>القفز (اضغط مرتين للقفز المزدوج)</span></li>
+                            <li><kbd>S</kbd> أو <kbd>⬇️</kbd> <span>الانحناء / النزول من المنصات</span></li>
+                            <li><kbd>J</kbd> أو <kbd>Z</kbd> أو <kbd>زر الماوس</kbd> <span>هجوم بالسيف وصد القذائف</span></li>
+                            <li><kbd>K</kbd> أو <kbd>Shift</kbd> <span>اندفاع سريع (Dash) واختراق</span></li>
+                            <li><kbd>Esc</kbd> أو <kbd>P</kbd> <span>إيقاف اللعبة مؤقتاً</span></li>
+                        </ul>
+                    </div>
+
+                    <!-- Mobile Column -->
+                    <div class="how-col">
+                        <div class="col-title"><i class="fa-solid fa-mobile-screen-button"></i> للهواتف والأجهزة اللوحية</div>
+                        <ul class="control-list">
+                            <li><span class="ctrl-icon"><i class="fa-solid fa-arrows-up-down-left-right"></i></span> <span>عصا تحكم 4-Way (فوق للقفز، تحت للانحناء، يمين ويسار للحركة)</span></li>
+                            <li><span class="ctrl-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span> <span>زر السيف (هجوم) وصد قذائف الليزر والنيران</span></li>
+                            <li><span class="ctrl-icon"><i class="fa-solid fa-bolt-lightning"></i></span> <span>زر الاندفاع (داش) لتفادي الأخطار واختراق الأعداء</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="tips-box">
+                    <p><i class="fa-solid fa-lightbulb gold-text"></i> <strong>نصيحة للمحترفين:</strong> يمكنك استخدام السيف لصد وتدمير قذائف الأعداء الطائرة، واستخدم زر الاندفاع (Dash) لتفادي هجمات الزعيم الأخير العنيفة!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. PAUSE MODAL -->
+        <div id="modal-pause" class="ui-modal hidden">
+            <div class="modal-card">
+                <h2 class="modal-title"><i class="fa-solid fa-circle-pause"></i> اللعبة متوقفة</h2>
+                <div class="modal-actions">
+                    <button id="btn-pause-resume" class="glow-btn primary-btn">
+                        <i class="fa-solid fa-play"></i> استئناف اللعب
+                    </button>
+                    <button id="btn-pause-restart" class="glow-btn secondary-btn">
+                        <i class="fa-solid fa-rotate-right"></i> إعادة المرحلة
+                    </button>
+                    <button id="btn-pause-stages" class="glow-btn secondary-btn">
+                        <i class="fa-solid fa-map"></i> قائمة المراحل
+                    </button>
+                    <button id="btn-pause-menu" class="glow-btn tertiary-btn">
+                        <i class="fa-solid fa-house"></i> القائمة الرئيسية
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. LEVEL COMPLETE MODAL -->
+        <div id="modal-victory" class="ui-modal hidden">
+            <div class="modal-card victory-card">
+                <div class="victory-crown"><i class="fa-solid fa-trophy"></i></div>
+                <h2 class="modal-title victory-title">اكتملت المرحلة بنجاح!</h2>
+                <p id="victory-stage-title" class="victory-subtitle">الغابة الساحرة</p>
+
+                <div class="victory-stars">
+                    <div class="v-star-slot" id="v-star-1"><i class="fa-solid fa-star"></i><span class="v-star-desc">إنهاء المرحلة</span></div>
+                    <div class="v-star-slot" id="v-star-2"><i class="fa-solid fa-star"></i><span class="v-star-desc">جمع الجواهر الثلاث</span></div>
+                    <div class="v-star-slot" id="v-star-3"><i class="fa-solid fa-star"></i><span class="v-star-desc">الوقت القياسي</span></div>
+                </div>
+
+                <div class="victory-stats-grid">
+                    <div class="v-stat">
+                        <span class="v-stat-label">الوقت المستغرق:</span>
+                        <span id="v-time-val" class="v-stat-val">01:24</span>
+                    </div>
+                    <div class="v-stat">
+                        <span class="v-stat-label">العملات المكتسبة:</span>
+                        <span id="v-coins-val" class="v-stat-val">+45</span>
+                    </div>
+                    <div class="v-stat">
+                        <span class="v-stat-label">الأعداء المهزومين:</span>
+                        <span id="v-enemies-val" class="v-stat-val">8</span>
+                    </div>
+                </div>
+
+                <div class="developer-credit-tag">
+                    <i class="fa-solid fa-code"></i> برمجة وتطوير: <strong>أحمد عبد الوهاب</strong>
+                </div>
+
+                <div class="modal-actions horizontal-actions">
+                    <button id="btn-victory-stages" class="glow-btn secondary-btn">
+                        <i class="fa-solid fa-map"></i> المراحل
+                    </button>
+                    <button id="btn-victory-retry" class="glow-btn secondary-btn">
+                        <i class="fa-solid fa-rotate-right"></i> إعادة
+                    </button>
+                    <button id="btn-victory-next" class="glow-btn primary-btn">
+                        <span>المرحلة التالية</span> <i class="fa-solid fa-forward-step"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. GAME OVER MODAL -->
+        <div id="modal-gameover" class="ui-modal hidden">
+            <div class="modal-card gameover-card">
+                <div class="skull-icon"><i class="fa-solid fa-skull"></i></div>
+                <h2 class="modal-title gameover-title">سقط الفارس الشجاع!</h2>
+                <p class="gameover-desc">لا تستسلم، المغامر الحقيقي يتعلم من كل سقطة ويواصل التحدي.</p>
+
+                <div class="developer-credit-tag">
+                    <i class="fa-solid fa-code"></i> برمجة وتطوير: <strong>أحمد عبد الوهاب</strong>
+                </div>
+
+                <div class="modal-actions">
+                    <!-- REWARDED AD REVIVE BUTTON -->
+                    <button id="btn-gameover-ad-revive" class="glow-btn ad-revive-btn pulse-anim">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                        <span>مشاهدة إعلان للإحياء فوراً 💖 (+3 قلوب)</span>
+                    </button>
+                    <button id="btn-gameover-retry" class="glow-btn primary-btn">
+                        <i class="fa-solid fa-rotate-right"></i> المحاولة مجدداً
+                    </button>
+                    <button id="btn-gameover-stages" class="glow-btn secondary-btn">
+                        <i class="fa-solid fa-map"></i> اختيار مرحلة أخرى
+                    </button>
+                    <button id="btn-gameover-menu" class="glow-btn tertiary-btn">
+                        <i class="fa-solid fa-house"></i> القائمة الرئيسية
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7.5 REWARDED AD POPUP MODAL -->
+        <div id="modal-rewarded-ad" class="ui-modal hidden">
+            <div class="modal-card ad-glass-card">
+                <div class="ad-card-badge"><i class="fa-solid fa-rectangle-ad"></i> إعلان فيديو بمكافأة • استعادة الحياة</div>
+                <div class="ad-video-mockup">
+                    <!-- Google AdSense Live Ad Container -->
+                    <div id="google-ad-container" style="min-height: 90px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center;">
+                        <ins class="adsbygoogle"
+                             style="display:block; width:100%; max-width:320px; height:100px;"
+                             data-ad-client="ca-pub-1911478411926834"
+                             data-ad-format="auto"
+                             data-full-width-responsive="true"></ins>
+                    </div>
+
+                    <div class="ad-video-icon"><i class="fa-solid fa-shield-heart pulse-anim"></i></div>
+                    <h3 class="ad-video-title">إحياء الفارس الكوني واستعادة كامل القلوب!</h3>
+                    <p class="ad-video-desc" id="ad-status-msg">جاري تجهيز قلوب الشفاء ودرع الحصانة الذهبي...</p>
+                    <div class="ad-countdown-pill" id="ad-countdown-timer">5 ثوانٍ</div>
+                    <div class="ad-progress-bar-track">
+                        <div class="ad-progress-bar-fill" id="ad-progress-bar-fill"></div>
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 16px;">
+                    <button id="btn-claim-ad-revive" class="glow-btn primary-btn disabled-btn" disabled>
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>استعادة طاقتك والعودة للمعركة!</span>
+                    </button>
+                    <button id="btn-cancel-ad" class="glow-btn tertiary-btn">
+                        <i class="fa-solid fa-xmark"></i> إلغاء العودة
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. OFFLINE & APP INSTALL GUIDE MODAL -->
+        <div id="modal-install-app" class="ui-modal hidden">
+            <div class="modal-card install-card">
+                <div class="install-icon-header"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+                <h2 class="modal-title">تثبيت اللعبة واللعب بدون إنترنت (Offline)</h2>
+                <p class="install-info-text">يمكنك تثبيت اللعبة كتطبيق مستقل على هاتفك وتشغيلها في أي وقت وأي مكان حتى لو كان هاتفك في <strong>وضع الطيران (بدون نت)</strong>!</p>
+                
+                <div class="install-steps-container">
+                    <div class="install-step-box" id="install-android-box">
+                        <div class="step-badge"><i class="fa-brands fa-android"></i> أندرويد (تطبيق APK رسمي)</div>
+                        <p>حمّل وثبّت ملف تطبيق اللعبة الرسمي للأندرويد فوراً مع إعلانات AdMob وميزة العمل بدون نت:</p>
+                        <a href="cosmic-knight.apk" download="cosmic-knight.apk" class="glow-btn primary-btn pulse-anim" style="margin-top: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fa-solid fa-robot"></i> تحميل ملف الـ APK المباشر (Android)
+                        </a>
+                    </div>
+
+                    <div class="install-step-box" id="install-ios-box">
+                        <div class="step-badge"><i class="fa-brands fa-apple"></i> هواتف آيفون (iOS Safari)</div>
+                        <ol class="ios-install-list">
+                            <li>اضغط على زر المشاركة <strong>(Share / <i class="fa-solid fa-arrow-up-from-bracket"></i>)</strong> أسفل المتصفح.</li>
+                            <li>اختر <strong>"إضافة إلى الشاشة الرئيسية" (Add to Home Screen / <i class="fa-solid fa-plus"></i>)</strong>.</li>
+                            <li>ستظهر أيقونة اللعبة على شاشتك الرئيسية وتعمل كأي تطبيق أصلي!</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 14px;">
+                    <button id="btn-close-install-modal" class="glow-btn secondary-btn">
+                        <i class="fa-solid fa-xmark"></i> إغلاق
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. STORY DIALOGUE OVERLAY (حوارات القصة والزعماء) -->
+        <div id="dialogue-overlay" class="dialogue-overlay hidden">
+            <div class="dialogue-box">
+                <div class="dialogue-header">
+                    <div class="speaker-profile">
+                        <div class="speaker-avatar-frame" id="dialogue-avatar-frame">
+                            <span id="dialogue-avatar-icon" class="speaker-icon">⚔️</span>
+                        </div>
+                        <div class="speaker-info">
+                            <h3 id="dialogue-speaker-name" class="speaker-name">الفارس السماوي (Hero)</h3>
+                            <span id="dialogue-speaker-title" class="speaker-title">حامي الأبعاد الكونية</span>
+                        </div>
+                    </div>
+                    <button id="btn-dialogue-skip" class="dialogue-skip-btn" title="تخطي الحوار (Skip)">
+                        <span>تخطي</span> <i class="fa-solid fa-forward-step"></i>
+                    </button>
+                </div>
+
+                <div class="dialogue-body">
+                    <p id="dialogue-text" class="dialogue-text">...</p>
+                </div>
+
+                <div class="dialogue-footer">
+                    <span class="dialogue-hint"><i class="fa-regular fa-keyboard"></i> اضغط مسافة أو المس الشاشة للمتابعة</span>
+                    <button id="btn-dialogue-next" class="dialogue-next-btn">
+                        <span>التالي</span> <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts with Cache Buster v8.0 -->
+    <script src="js/audio.js?v=8.0"></script>
+    <script src="js/particles.js?v=8.0"></script>
+    <script src="js/levels.js?v=8.0"></script>
+    <script src="js/entities.js?v=8.0"></script>
+    <script src="js/controls.js?v=8.0"></script>
+    <script src="js/engine.js?v=8.0"></script>
+    <script src="js/dialogue.js?v=8.0"></script>
+    <script src="js/game.js?v=8.0"></script>
+
+    <!-- Service Worker & PWA Install Registration -->
+    <script>
+        // Register Service Worker for Offline PWA with auto-update
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js?v=8.0')
+                    .then((reg) => {
+                        console.log('[PWA] Service Worker registered! Scope:', reg.scope);
+                        reg.update();
+                    })
+                    .catch((err) => {
+                        console.warn('[PWA] Service Worker registration failed:', err);
+                    });
+            });
+        }
+
+        // PWA Install Prompt Handler
+        let deferredInstallPrompt = null;
+        const installBtn = document.getElementById('btn-install-pwa');
+        const installModal = document.getElementById('modal-install-app');
+        const triggerInstallBtn = document.getElementById('btn-trigger-install');
+        const closeInstallModalBtn = document.getElementById('btn-close-install-modal');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            if (installBtn) {
+                installBtn.style.display = 'inline-flex';
+                installBtn.classList.add('pulse-anim');
+            }
+        });
+
+        if (installBtn && installModal) {
+            installBtn.onclick = () => {
+                installModal.classList.remove('hidden');
+            };
+        }
+
+        if (triggerInstallBtn) {
+            triggerInstallBtn.onclick = async () => {
+                if (deferredInstallPrompt) {
+                    deferredInstallPrompt.prompt();
+                    const { outcome } = await deferredInstallPrompt.userChoice;
+                    console.log(`[PWA] Install prompt outcome: ${outcome}`);
+                    deferredInstallPrompt = null;
+                    installModal.classList.add('hidden');
+                } else {
+                    alert('لتثبيت اللعبة: اضغط على قائمة المتصفح (⋮) ثم اختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"');
+                }
+            };
+        }
+
+        if (closeInstallModalBtn && installModal) {
+            closeInstallModalBtn.onclick = () => {
+                installModal.classList.add('hidden');
+            };
+        }
+
+        window.addEventListener('appinstalled', () => {
+            console.log('[PWA] Cosmic Knight was installed successfully!');
+            if (installBtn) installBtn.style.display = 'none';
+        });
+    </script>
+</body>
+</html>

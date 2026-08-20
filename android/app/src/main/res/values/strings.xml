@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">فارس الأبعاد</string>
+    <string name="title_activity_main">فارس الأبعاد</string>
+    <string name="package_name">com.ahmed.cosmicknight</string>
+    <string name="custom_url_scheme">com.ahmed.cosmicknight</string>
+</resources>

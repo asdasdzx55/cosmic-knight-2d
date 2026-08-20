@@ -1,0 +1,23 @@
+{
+  "name": "cosmic-knight-2d",
+  "version": "8.0.0",
+  "description": "فارس الأبعاد - Cosmic Knight 2D Mobile Game | برمجة وتطوير: أحمد عبد الوهاب",
+  "main": "sw.js",
+  "scripts": {
+    "build": "node -e \"const fs=require('fs'); if(!fs.existsSync('www')) fs.mkdirSync('www'); fs.copyFileSync('index.html', 'www/index.html'); fs.copyFileSync('manifest.json', 'www/manifest.json'); fs.copyFileSync('favicon.ico', 'www/favicon.ico'); fs.copyFileSync('sw.js', 'www/sw.js'); fs.cpSync('css', 'www/css', {recursive:true}); fs.cpSync('js', 'www/js', {recursive:true}); fs.cpSync('icons', 'www/icons', {recursive:true}); console.log('Web assets built into www/ successfully!');\"",
+    "sync": "npm run build && npx cap sync android",
+    "build:android": "npm run sync && cd android && gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor-community/admob": "^6.0.0",
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asdasdzx55/cosmic-knight-2d.git"
+  },
+  "author": "Ahmed Abdelwahab (أحمد عبد الوهاب)",
+  "license": "ISC"
+}

@@ -1,6 +1,7 @@
+node_modules/
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
 .DS_Store
 Thumbs.db
-node_modules/
-.vscode/
-.idea/
-*.log

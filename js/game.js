@@ -242,8 +242,32 @@ class GameManager {
     }
 
     // ================= REWARDED AD REVIVE SYSTEM =================
-    showRewardedAdForRevive() {
+    async showRewardedAdForRevive() {
         this.hideAllModals();
+
+        // 1. Check Native Android Capacitor AdMob
+        if (window.Capacitor && window.Capacitor.isNativePlatform() && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+            try {
+                const AdMob = window.Capacitor.Plugins.AdMob;
+                await AdMob.initialize({ requestTrackingAuthorization: true });
+                
+                await AdMob.prepareRewardVideoAd({
+                    adId: 'ca-app-pub-3940256099942544/5224354917', // Google Official AdMob Test Unit
+                    isTesting: true
+                });
+
+                AdMob.addListener('onRewardedVideoAdReward', () => {
+                    this.claimAdReviveReward();
+                });
+
+                await AdMob.showRewardVideoAd();
+                return;
+            } catch (err) {
+                console.warn('[AdMob Native Error, falling back to interactive modal]:', err);
+            }
+        }
+
+        // 2. Web fallback interactive modal
         const adModal = document.getElementById('modal-rewarded-ad');
         if (adModal) adModal.classList.remove('hidden');
 

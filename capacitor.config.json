@@ -1,0 +1,14 @@
+{
+  "appId": "com.ahmed.cosmicknight",
+  "appName": "فارس الأبعاد",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "AdMob": {
+      "appId": "ca-app-pub-1911478411926834~0000000000"
+    }
+  }
+}
