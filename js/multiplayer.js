@@ -11,9 +11,8 @@ class MultiplayerManager {
         this.isHost = false;
         this.roomCode = null;
         this.isConnected = false;
-        this.isSearching = false;
-        this.lastPing = 0;
-        this.rtt = 0;
+        this.isHandshakeDone = false;
+        this.statusText = 'جاهز للاتصال';
 
         // Player Match State
         this.mySkin = 'classic';
@@ -26,6 +25,7 @@ class MultiplayerManager {
         this.rematchRequestedByOpponent = false;
 
         // Callbacks
+        this.onStatusChange = null;
         this.onConnectedCallback = null;
         this.onOpponentStateCallback = null;
         this.onOpponentAttackCallback = null;
@@ -36,19 +36,41 @@ class MultiplayerManager {
         this.onDisconnectCallback = null;
     }
 
+    setStatus(text) {
+        this.statusText = text;
+        console.log('[PVP Status]:', text);
+        if (this.onStatusChange) {
+            this.onStatusChange(text);
+        }
+        const netStatus = document.getElementById('pvp-net-status');
+        if (netStatus) netStatus.innerText = text;
+    }
+
     generateRoomCode() {
         return Math.floor(1000 + Math.random() * 9000).toString();
     }
 
-    createRoom(skin = 'classic', onReady) {
+    getJoinUrl(code) {
+        let base = window.location.origin + window.location.pathname;
+        if (base.includes('localhost') || base.includes('127.0.0.1')) {
+            base = 'http://10.73.42.174:3000/';
+        }
+        return base.split('?')[0] + '?join=' + code;
+    }
+
+    createRoom(skin = 'classic', onReady, onError) {
         this.cleanup();
         this.isHost = true;
         this.mySkin = skin;
         this.roomCode = this.generateRoomCode();
-        const peerId = 'ck2d-' + this.roomCode;
+        const peerId = 'ck2d-room-' + this.roomCode;
+
+        this.setStatus('🌐 جاري الاتصال بخادم النزال...');
 
         if (typeof Peer === 'undefined') {
-            console.error('[PVP] PeerJS is not loaded');
+            const err = 'مكتبة الاتصال لم تُحمّل بعد!';
+            this.setStatus('❌ ' + err);
+            if (onError) onError(err);
             return;
         }
 
@@ -57,27 +79,33 @@ class MultiplayerManager {
             config: {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' }
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun.cloudflare.com:3478' }
                 ]
             }
         });
 
         this.peer.on('open', (id) => {
             console.log('[PVP Host] Room open with code:', this.roomCode);
-            if (onReady) onReady(this.roomCode);
+            this.setStatus('⏳ الغرفة جاهزة: ' + this.roomCode);
+            if (onReady) onReady(this.roomCode, this.getJoinUrl(this.roomCode));
         });
 
         this.peer.on('connection', (conn) => {
-            console.log('[PVP Host] Opponent connected!');
+            console.log('[PVP Host] Incoming connection from opponent!');
+            this.setStatus('🔗 جاري ربط الهاتفين...');
             this.conn = conn;
             this.setupConnection();
         });
 
         this.peer.on('error', (err) => {
             console.error('[PVP Host Error]:', err);
-            // If ID is taken, retry with new code
             if (err.type === 'unavailable-id') {
-                this.createRoom(skin, onReady);
+                this.createRoom(skin, onReady, onError);
+            } else {
+                this.setStatus('❌ خطأ في الاتصال: ' + (err.type || ''));
+                if (onError) onError(err);
             }
         });
     }
@@ -87,21 +115,26 @@ class MultiplayerManager {
         this.isHost = false;
         this.mySkin = skin;
         this.roomCode = code.trim();
-        const hostPeerId = 'ck2d-' + this.roomCode;
+        const hostPeerId = 'ck2d-room-' + this.roomCode;
+
+        this.setStatus('🌐 جاري الاتصال بالغرفة ' + this.roomCode + '...');
 
         if (typeof Peer === 'undefined') {
-            if (onError) onError('PeerJS library not loaded');
+            const err = 'مكتبة الاتصال لم تُحمّل بعد!';
+            this.setStatus('❌ ' + err);
+            if (onError) onError(err);
             return;
         }
 
-        // Random client peer ID
-        const myPeerId = 'ck2d-client-' + Math.floor(Math.random() * 1000000);
+        const myPeerId = 'ck2d-guest-' + Math.floor(100000 + Math.random() * 900000);
         this.peer = new Peer(myPeerId, {
             debug: 1,
             config: {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' }
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun.cloudflare.com:3478' }
                 ]
             }
         });
@@ -109,23 +142,17 @@ class MultiplayerManager {
         this.peer.on('open', () => {
             console.log('[PVP Guest] Connecting to host:', hostPeerId);
             this.conn = this.peer.connect(hostPeerId, {
-                reliable: false // Unreliable mode for fast 60 FPS real-time UDP gaming
+                reliable: true
             });
 
-            this.conn.on('open', () => {
-                console.log('[PVP Guest] Connected to host successfully!');
-                this.setupConnection();
-                if (onConnected) onConnected();
-            });
+            this.setupConnection();
 
-            this.conn.on('error', (err) => {
-                console.error('[PVP Guest Conn Error]:', err);
-                if (onError) onError(err);
-            });
+            if (onConnected) onConnected();
         });
 
         this.peer.on('error', (err) => {
             console.error('[PVP Guest Peer Error]:', err);
+            this.setStatus('❌ تعذر العثور على الغرفة ' + this.roomCode);
             if (onError) onError(err);
         });
     }
@@ -133,13 +160,35 @@ class MultiplayerManager {
     setupConnection() {
         if (!this.conn) return;
 
-        this.isConnected = true;
+        const onDataOpen = () => {
+            console.log('[PVP] DataChannel open! Sending Handshake...');
+            this.isConnected = true;
+            this.setStatus('✅ متصل! جاري تبادل بيانات الفرسان...');
 
-        // Exchange skin & initial match metadata
-        this.send('HANDSHAKE', {
-            isHost: this.isHost,
-            skin: this.mySkin
-        });
+            // Send Handshake packet
+            this.send('HANDSHAKE', {
+                isHost: this.isHost,
+                skin: this.mySkin
+            });
+
+            // Handshake Keep-Alive / Retry
+            const handshakeInterval = setInterval(() => {
+                if (this.isHandshakeDone || !this.isConnected) {
+                    clearInterval(handshakeInterval);
+                } else {
+                    this.send('HANDSHAKE', {
+                        isHost: this.isHost,
+                        skin: this.mySkin
+                    });
+                }
+            }, 500);
+        };
+
+        if (this.conn.open) {
+            onDataOpen();
+        } else {
+            this.conn.on('open', onDataOpen);
+        }
 
         this.conn.on('data', (data) => {
             this.handleIncomingData(data);
@@ -148,19 +197,28 @@ class MultiplayerManager {
         this.conn.on('close', () => {
             console.warn('[PVP] Connection closed');
             this.isConnected = false;
+            this.isHandshakeDone = false;
+            this.setStatus('⚠️ تم قطع الاتصال');
             if (this.onDisconnectCallback) this.onDisconnectCallback();
         });
 
-        if (this.onConnectedCallback) this.onConnectedCallback();
+        this.conn.on('error', (err) => {
+            console.error('[PVP Conn Error]:', err);
+            this.setStatus('❌ خطأ في قناة البيانات');
+        });
     }
 
     send(type, payload = {}) {
         if (this.conn && this.conn.open) {
-            this.conn.send({
-                type,
-                timestamp: performance.now(),
-                ...payload
-            });
+            try {
+                this.conn.send({
+                    type,
+                    timestamp: performance.now(),
+                    ...payload
+                });
+            } catch (e) {
+                console.warn('[PVP Send Error]:', e);
+            }
         }
     }
 
@@ -170,20 +228,34 @@ class MultiplayerManager {
         switch (msg.type) {
             case 'HANDSHAKE':
                 this.opponentSkin = msg.skin || 'fire';
-                console.log('[PVP] Handshake received. Opponent skin:', this.opponentSkin);
+                this.isHandshakeDone = true;
+                console.log('[PVP] Handshake acknowledged. Opponent skin:', this.opponentSkin);
+                this.send('HANDSHAKE_ACK', { skin: this.mySkin });
+
                 if (this.isHost) {
-                    // Send match start trigger
-                    this.send('MATCH_START', {
-                        stage: 'pvp_arena_1',
-                        round: 1
-                    });
+                    setTimeout(() => {
+                        this.send('MATCH_START', {
+                            stage: 'pvp_arena_1',
+                            round: 1
+                        });
+                        if (window.gameManager) {
+                            window.gameManager.startPvPMatch();
+                        }
+                    }, 400);
                 }
+                break;
+
+            case 'HANDSHAKE_ACK':
+                this.opponentSkin = msg.skin || 'fire';
+                this.isHandshakeDone = true;
+                console.log('[PVP] Handshake ACK received.');
                 break;
 
             case 'MATCH_START':
                 this.currentRound = msg.round || 1;
                 this.myScore = 0;
                 this.opponentScore = 0;
+                this.setStatus('⚔️ بدء النزال الآن!');
                 if (window.gameManager) {
                     window.gameManager.startPvPMatch();
                 }
@@ -214,7 +286,6 @@ class MultiplayerManager {
                 break;
 
             case 'ROUND_OVER':
-                // msg.winner is 'host' or 'guest'
                 const isWinnerMe = (this.isHost && msg.winner === 'host') || (!this.isHost && msg.winner === 'guest');
                 if (isWinnerMe) {
                     this.myScore++;
@@ -264,7 +335,7 @@ class MultiplayerManager {
 
     cleanup() {
         this.isConnected = false;
-        this.isSearching = false;
+        this.isHandshakeDone = false;
         if (this.conn) {
             try { this.conn.close(); } catch (e) {}
             this.conn = null;

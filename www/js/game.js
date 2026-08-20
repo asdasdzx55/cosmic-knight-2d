@@ -964,12 +964,46 @@ class GameManager {
             btnCreateRoom.onclick = () => {
                 const codeEl = document.getElementById('host-room-code');
                 const statusEl = document.getElementById('host-status-msg');
+                const qrContainer = document.getElementById('host-qrcode');
+                const copyBtn = document.getElementById('btn-copy-pvp-link');
+
                 if (statusEl) statusEl.innerText = '⏳ جاري إنشاء الغرفة...';
-                window.multiplayerManager.createRoom(this.saveData.selectedSkin, (code) => {
+                window.multiplayerManager.createRoom(this.saveData.selectedSkin, (code, joinUrl) => {
                     if (codeEl) codeEl.innerText = code;
-                    if (statusEl) statusEl.innerText = '✅ جاهز! شارك الرمز ' + code + ' مع صديقك';
+                    if (statusEl) statusEl.innerText = '✅ الغرفة جاهزة! امسح الرمز أو شارك الكود ' + code;
                     const netStatus = document.getElementById('pvp-net-status');
                     if (netStatus) netStatus.innerText = 'الغرفة: ' + code;
+
+                    // Generate QR Code
+                    if (qrContainer && typeof QRCode !== 'undefined') {
+                        qrContainer.innerHTML = '';
+                        new QRCode(qrContainer, {
+                            text: joinUrl,
+                            width: 100,
+                            height: 100,
+                            colorDark: "#040814",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.M
+                        });
+                    }
+
+                    // Enable Copy Link
+                    if (copyBtn) {
+                        copyBtn.classList.remove('hidden');
+                        copyBtn.onclick = () => {
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                navigator.clipboard.writeText(joinUrl).then(() => {
+                                    this.showToast('✅ تم نسخ رابط الغرفة بنجاح!');
+                                }).catch(() => {
+                                    prompt('انسخ رابط الغرفة:', joinUrl);
+                                });
+                            } else {
+                                prompt('انسخ رابط الغرفة:', joinUrl);
+                            }
+                        };
+                    }
+                }, (err) => {
+                    if (statusEl) statusEl.innerText = '❌ تعذر الاتصال بالخادم: ' + err;
                 });
             };
         }
@@ -1094,6 +1128,24 @@ class GameManager {
         if (window.dialogueManager) window.dialogueManager.init();
         this.showScreen('screen-main-menu');
         this.updateMenuHeroPreview();
+
+        // Check for ?join=XXXX QR Code URL query parameter
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const autoJoinCode = urlParams.get('join');
+            if (autoJoinCode && autoJoinCode.length === 4) {
+                console.log('[PVP] Auto-joining room via QR / URL param:', autoJoinCode);
+                this.showScreen('screen-pvp-lobby');
+                const input = document.getElementById('input-join-code');
+                if (input) input.value = autoJoinCode;
+                setTimeout(() => {
+                    const btnJoin = document.getElementById('btn-join-pvp-room');
+                    if (btnJoin) btnJoin.click();
+                }, 400);
+            }
+        } catch (e) {
+            console.warn('[PVP] Error parsing URL search params:', e);
+        }
     }
 
     // ================= MAIN 60 FPS GAME LOOP =================
