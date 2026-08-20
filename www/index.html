@@ -221,6 +221,33 @@
                     </button>
                 </div>
             </div>
+
+            <!-- SHARED SCREEN DUAL-PLAYER TOUCH CONTROLS (P1 vs P2) -->
+            <div id="dual-touch-controls" class="dual-touch-layer" style="display: none;">
+                <!-- Player 1 (Blue Knight - Left Side Controls) -->
+                <div class="dual-player-deck p1-deck">
+                    <div class="dual-dpad">
+                        <button id="p1-touch-left" class="dual-btn p1-btn" aria-label="يسار P1"><i class="fa-solid fa-arrow-left"></i></button>
+                        <button id="p1-touch-right" class="dual-btn p1-btn" aria-label="يمين P1"><i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                    <div class="dual-actions">
+                        <button id="p1-touch-jump" class="dual-btn p1-jump-btn" aria-label="قفز P1"><i class="fa-solid fa-arrow-up"></i></button>
+                        <button id="p1-touch-attack" class="dual-btn p1-atk-btn" aria-label="هجوم P1"><i class="fa-solid fa-shield-halved"></i></button>
+                    </div>
+                </div>
+
+                <!-- Player 2 (Red Knight - Right Side Controls) -->
+                <div class="dual-player-deck p2-deck">
+                    <div class="dual-actions">
+                        <button id="p2-touch-attack" class="dual-btn p2-atk-btn" aria-label="هجوم P2"><i class="fa-solid fa-shield-halved"></i></button>
+                        <button id="p2-touch-jump" class="dual-btn p2-jump-btn" aria-label="قفز P2"><i class="fa-solid fa-arrow-up"></i></button>
+                    </div>
+                    <div class="dual-dpad">
+                        <button id="p2-touch-left" class="dual-btn p2-btn" aria-label="يسار P2"><i class="fa-solid fa-arrow-left"></i></button>
+                        <button id="p2-touch-right" class="dual-btn p2-btn" aria-label="يمين P2"><i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- ================= UI SCREENS & MODALS ================= -->
@@ -297,8 +324,8 @@
                         </button>
 
                         <button id="btn-menu-pvp" class="arcade-btn-pvp">
-                            <i class="fa-solid fa-swords"></i>
-                            <span>طور النزال الثنائي (1v1 PvP) 📱⚔️📱</span>
+                            <i class="fa-solid fa-gamepad"></i>
+                            <span>طور نزال لاعبين (على نفس الهاتف) 📱⚔️</span>
                         </button>
 
                         <div class="arcade-btn-row">
@@ -359,81 +386,60 @@
             </div>
         </div>
 
-        <!-- 2.5. PVP MULTIPLAYER LOBBY SCREEN -->
+        <!-- 2.5. SHARED SCREEN DUAL PVP READY SCREEN -->
         <div id="screen-pvp-lobby" class="ui-screen hidden">
-            <div class="stages-glass-card pvp-lobby-frame">
+            <div class="stages-glass-card dual-ready-frame">
                 <div class="screen-header">
                     <button id="btn-pvp-back" class="back-btn" aria-label="رجوع">
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
-                    <h2 class="screen-title"><i class="fa-solid fa-swords"></i> طور النزال الثنائي (1v1 PvP Wi-Fi)</h2>
+                    <h2 class="screen-title"><i class="fa-solid fa-swords"></i> نزال الفرسان الثنائي (لاعبان على نفس الهاتف)</h2>
                     <div class="header-coin-badge">
-                        <i class="fa-solid fa-wifi"></i>
-                        <span id="pvp-net-status">جاهز للاتصال</span>
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+                        <span>شاشة واحدة 📱</span>
                     </div>
                 </div>
 
-                <div class="pvp-lobby-grid">
-                    <!-- Left Deck: Host Room & QR Code -->
-                    <div class="pvp-card-box host-card-box">
-                        <div class="pvp-badge-header">
-                            <i class="fa-solid fa-tower-broadcast pvp-main-icon"></i>
-                            <h3 class="pvp-box-title">إنشاء غرفة نزال (المُضيف)</h3>
-                            <p class="pvp-box-sub">امسح رمز الـ QR أو شارك كود الـ 4 أرقام مع صديقك</p>
+                <div class="dual-ready-grid">
+                    <!-- Left Deck: Player 1 (Blue Knight) -->
+                    <div class="dual-card-box p1-box">
+                        <div class="dual-badge-header">
+                            <i class="fa-solid fa-shield-halved dual-main-icon p1-color"></i>
+                            <h3 class="dual-box-title">اللاعب 1 (الفارس السماوي)</h3>
+                            <span class="dual-side-pill p1-pill">أزرار التحكم: يسار الشاشة 👈</span>
                         </div>
                         
-                        <div class="room-code-display-box">
-                            <span class="room-code-label">رمز غرفتك:</span>
-                            <div class="room-code-val" id="host-room-code">----</div>
-                        </div>
-
-                        <!-- QR Code Container -->
-                        <div class="pvp-qrcode-wrapper" id="host-qrcode-wrapper">
-                            <div id="host-qrcode" class="pvp-qrcode-box"></div>
-                            <span class="qrcode-hint"><i class="fa-solid fa-qrcode"></i> امسح الرمز بكاميرا الهاتف</span>
-                        </div>
-
-                        <div class="pvp-host-actions">
-                            <button id="btn-create-pvp-room" class="glow-btn primary-btn pvp-deck-btn pulse-anim">
-                                <i class="fa-solid fa-plus-circle"></i>
-                                <span>إنشاء غرفة جديدة ⚔️</span>
-                            </button>
-                            <button id="btn-copy-pvp-link" class="mini-text-btn pvp-share-btn hidden">
-                                <i class="fa-solid fa-copy"></i> نسخ الرابط
-                            </button>
-                        </div>
-
-                        <div class="pvp-status-pill" id="host-status-msg">
-                            اضغط إنشاء غرفة لتوليد الكود ورمز الـ QR
+                        <div class="dual-guide-list">
+                            <div class="guide-item"><i class="fa-solid fa-arrows-left-right"></i> <span>الحركة: يسار / يمين</span></div>
+                            <div class="guide-item"><i class="fa-solid fa-arrow-up"></i> <span>القفز: زر السهم للأعلى</span></div>
+                            <div class="guide-item"><i class="fa-solid fa-shield-halved"></i> <span>الهجوم: زر السيف الأزرق</span></div>
+                            <div class="guide-item keyboard-hint"><i class="fa-solid fa-keyboard"></i> <span>الكيبورد: A, D, W, F</span></div>
                         </div>
                     </div>
 
-                    <!-- Right Deck: Join Room -->
-                    <div class="pvp-card-box join-card-box">
-                        <div class="pvp-badge-header">
-                            <i class="fa-solid fa-right-to-bracket pvp-main-icon"></i>
-                            <h3 class="pvp-box-title">انضمام لغرفة (اللاعب 2)</h3>
-                            <p class="pvp-box-sub">أدخل كود الـ 4 أرقام الظاهر على شاشة المضيف</p>
+                    <!-- Right Deck: Player 2 (Red Knight) -->
+                    <div class="dual-card-box p2-box">
+                        <div class="dual-badge-header">
+                            <i class="fa-solid fa-fire dual-main-icon p2-color"></i>
+                            <h3 class="dual-box-title">اللاعب 2 (الفارس الناري)</h3>
+                            <span class="dual-side-pill p2-pill">👉 أزرار التحكم: يمين الشاشة</span>
                         </div>
 
-                        <div class="room-input-container">
-                            <input type="number" id="input-join-code" class="pvp-code-input" placeholder="0000" maxlength="4" min="1000" max="9999" pattern="[0-9]*" inputmode="numeric">
-                        </div>
-
-                        <button id="btn-join-pvp-room" class="glow-btn secondary-btn pvp-deck-btn">
-                            <i class="fa-solid fa-handshake-simple"></i>
-                            <span>انضمام للنزال الآن ⚡</span>
-                        </button>
-
-                        <div class="qr-camera-tip-box">
-                            <i class="fa-solid fa-camera-retro"></i>
-                            <span>أو قم بمسح رمز الـ QR من شاشة هاتف صديقك للاتصال المباشر!</span>
-                        </div>
-
-                        <div class="pvp-status-pill" id="join-status-msg">
-                            أدخل الرمز واضغط انضمام
+                        <div class="dual-guide-list">
+                            <div class="guide-item"><i class="fa-solid fa-arrows-left-right"></i> <span>الحركة: يسار / يمين</span></div>
+                            <div class="guide-item"><i class="fa-solid fa-arrow-up"></i> <span>القفز: زر السهم للأعلى</span></div>
+                            <div class="guide-item"><i class="fa-solid fa-shield-halved"></i> <span>الهجوم: زر السيف الأحمر</span></div>
+                            <div class="guide-item keyboard-hint"><i class="fa-solid fa-keyboard"></i> <span>الكيبورد: الأسهم + 1</span></div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Launch Duel Button -->
+                <div class="dual-action-footer">
+                    <button id="btn-start-dual-pvp" class="glow-btn primary-btn dual-launch-btn pulse-anim">
+                        <i class="fa-solid fa-swords"></i>
+                        <span>انطلاق المعركة الآن (Best of 3) ⚔️🔥</span>
+                    </button>
                 </div>
             </div>
         </div>

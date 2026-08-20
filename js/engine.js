@@ -161,9 +161,42 @@ class GameEngine {
                 p.squashTimer -= dt;
             }
         }
-
+        
         // ================= 2. UPDATE PLAYER =================
         player.update(dt, input, this.platforms, this.hazards, this.currentLevel.width, this.currentLevel.height);
+
+        // ================= 2.1 UPDATE LOCAL PLAYER 2 (DUEL MODE) =================
+        if (this.player2) {
+            this.player2.update(dt, window.inputController.stateP2, this.platforms, this.hazards, this.currentLevel.width, this.currentLevel.height);
+
+            // Combat Collision: Player 1 attacking Player 2
+            if (player.isAttacking && !this.player2.isDead && this.player2.invulnerableTimer <= 0) {
+                const p1AttackBox = {
+                    x: player.facingRight ? player.x + player.w : player.x - 32,
+                    y: player.y,
+                    w: 32,
+                    h: player.h
+                };
+                if (player.rectIntersect(p1AttackBox, this.player2)) {
+                    this.player2.takeDamage(1, player.x);
+                    this.addScreenShake(7, 0.25);
+                }
+            }
+
+            // Combat Collision: Player 2 attacking Player 1
+            if (this.player2.isAttacking && !player.isDead && player.invulnerableTimer <= 0) {
+                const p2AttackBox = {
+                    x: this.player2.facingRight ? this.player2.x + this.player2.w : this.player2.x - 32,
+                    y: this.player2.y,
+                    w: 32,
+                    h: this.player2.h
+                };
+                if (this.player2.rectIntersect(p2AttackBox, player)) {
+                    player.takeDamage(1, this.player2.x);
+                    this.addScreenShake(7, 0.25);
+                }
+            }
+        }
 
         // ================= 2.5 SECRET WALLS CHECK =================
         for (const p of this.platforms) {
@@ -215,57 +248,84 @@ class GameEngine {
             bossHud.classList.add('hidden');
         }
 
-        // ================= 5. UPDATE PROJECTILES =================
-        for (let i = this.projectiles.length - 1; i >= 0; i--) {
-            const proj = this.projectiles[i];
-            proj.update(dt, player, this.platforms);
+        // ================= 5. UPDATE COLLECTIBLES =================
+        for (let i = this.collectibles.length - 1; i >= 0; i--) {
+            const c = this.collectibles[i];
+            c.update(dt);
+            if (player.rectIntersect(player, c)) {
+                c.collect(player);
+                this.collectibles.splice(i, 1);
+            } else if (this.player2 && this.player2.rectIntersect(this.player2, c)) {
+                c.collect(this.player2);
+                this.collectibles.splice(i, 1);
+            }
+        }
 
-            // Player Projectiles hitting enemies
-            if (proj.owner === 'player') {
-                for (const enemy of this.enemies) {
-                    if (!enemy.isDead && player.rectIntersect(proj, enemy)) {
-                        enemy.takeDamage(1, player);
-                        proj.isDead = true;
-                        window.particleSystem.emitHitSparks(proj.x, proj.y, proj.color);
-                        break;
-                    }
+        // ================= 6. UPDATE PROJECTILES =================
+        for (let i = this.projectiles.length - 1; i >= 0; i--) {
+            const p = this.projectiles[i];
+            p.update(dt);
+
+            // Collide with platforms
+            let hitPlatform = false;
+            for (const plat of this.platforms) {
+                if (plat.broken) continue;
+                if (p.x >= plat.x && p.x <= plat.x + plat.w && p.y >= plat.y && p.y <= plat.y + plat.h) {
+                    hitPlatform = true;
+                    break;
                 }
             }
 
-            if (proj.isDead) {
+            // Hit Player 1
+            if (player.rectIntersect(player, { x: p.x - p.radius, y: p.y - p.radius, w: p.radius * 2, h: p.radius * 2 })) {
+                player.takeDamage(1, p.x);
+                window.particleSystem.emitHitSparks(p.x, p.y, '#ff0054');
+                this.projectiles.splice(i, 1);
+                continue;
+            }
+
+            // Hit Player 2
+            if (this.player2 && this.player2.rectIntersect(this.player2, { x: p.x - p.radius, y: p.y - p.radius, w: p.radius * 2, h: p.radius * 2 })) {
+                this.player2.takeDamage(1, p.x);
+                window.particleSystem.emitHitSparks(p.x, p.y, '#ff0054');
+                this.projectiles.splice(i, 1);
+                continue;
+            }
+
+            if (hitPlatform || p.lifeTimer <= 0) {
+                window.particleSystem.emitHitSparks(p.x, p.y, '#ff70a6');
                 this.projectiles.splice(i, 1);
             }
         }
 
-        // ================= 6. UPDATE COLLECTIBLES =================
-        for (const c of this.collectibles) {
-            c.update(dt, player);
+        // ================= 7. CAMERA TRACKING =================
+        if (this.player2) {
+            const midX = (player.x + this.player2.x) * 0.5;
+            const targetCamX = midX - this.width * 0.5;
+            this.cameraX += (targetCamX - this.cameraX) * 0.1;
+            const midY = (player.y + this.player2.y) * 0.5;
+            const targetCamY = midY - this.height * 0.55;
+            this.cameraY += (targetCamY - this.cameraY) * 0.1;
+        } else {
+            const targetCamX = player.x - this.width * 0.35;
+            this.cameraX += (targetCamX - this.cameraX) * 0.08;
+            const targetCamY = player.y - this.height * 0.6;
+            this.cameraY += (targetCamY - this.cameraY) * 0.08;
         }
+        this.clampCamera();
 
-        // ================= 7. CHECK EXIT REACHED =================
-        if (this.exit) {
-            const exitBox = { x: this.exit.x, y: this.exit.y, w: this.exit.w, h: this.exit.h };
-            if (player.rectIntersect(player, exitBox)) {
-                if (this.exit.lockedUntilBossDead) {
-                    const activeBoss = this.enemies.find(e => e.type === 'boss' && !e.isDead);
-                    if (!activeBoss) {
-                        window.gameManager.completeLevel();
-                    }
-                } else {
-                    window.gameManager.completeLevel();
+        // ================= 8. UPDATE PARTICLES & WEATHER =================
+        window.particleSystem.update(dt, this.currentLevel.biome);
+
+        // ================= 9. LEVEL EXIT CHECK (PORTAL) =================
+        if (this.exit && !this.player2) {
+            const isBossAlive = this.enemies.some(e => e.type === 'boss' && !e.isDead);
+            if (!isBossAlive && player.rectIntersect(player, this.exit)) {
+                if (window.gameManager && window.gameManager.state === 'PLAYING') {
+                    window.gameManager.levelCompleted();
                 }
             }
         }
-
-        // ================= 8. UPDATE PARTICLES & CAMERA =================
-        window.particleSystem.update(dt, this.currentLevel.biome, this.cameraX, this.cameraY, this.width, this.height);
-
-        // Smooth Camera Follow with lookahead
-        const targetCamX = player.x - this.width * 0.4 + (player.facingRight ? 40 : -40);
-        const targetCamY = player.y - this.height * 0.55;
-        this.cameraX += (targetCamX - this.cameraX) * 0.1;
-        this.cameraY += (targetCamY - this.cameraY) * 0.08;
-        this.clampCamera();
     }
 
     clampCamera() {
@@ -317,12 +377,31 @@ class GameEngine {
             p.draw(this.ctx, renderCamX, renderCamY);
         }
 
-        // 8.5. Remote Opponent Player (PvP)
-        if (this.remotePlayer) {
-            this.remotePlayer.draw(this.ctx, renderCamX, renderCamY);
+        // 8.5. Local Player 2 (Duel Mode)
+        if (this.player2) {
+            this.player2.draw(this.ctx, renderCamX, renderCamY);
+
+            // Floating Name Tags
+            this.ctx.save();
+            this.ctx.font = 'bold 11px Cairo, sans-serif';
+            this.ctx.textAlign = 'center';
+
+            // P1 Tag (Blue)
+            this.ctx.fillStyle = '#00f5d4';
+            this.ctx.shadowColor = '#00f5d4';
+            this.ctx.shadowBlur = 8;
+            this.ctx.fillText('P1 (أنت)', player.x - renderCamX + player.w * 0.5, player.y - renderCamY - 14);
+
+            // P2 Tag (Red)
+            this.ctx.fillStyle = '#ff2e63';
+            this.ctx.shadowColor = '#ff2e63';
+            this.ctx.shadowBlur = 8;
+            this.ctx.fillText('P2 (اللاعب 2)', this.player2.x - renderCamX + this.player2.w * 0.5, this.player2.y - renderCamY - 14);
+
+            this.ctx.restore();
         }
 
-        // 9. Player
+        // 9. Player 1
         player.draw(this.ctx, renderCamX, renderCamY);
 
         // 10. Particles & Ambient Weather
