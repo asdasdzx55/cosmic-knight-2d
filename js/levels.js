@@ -610,9 +610,48 @@ const GAME_LEVELS = [
         enemies: [
             { type: 'boss', x: 900, y: 380, maxHp: 60, isDragon: true }
         ],
-        exit: { x: 1660, y: 510, w: 60, h: 90, lockedUntilBossDead: true }
     }
 ];
 
+const PVP_ARENAS = {
+    pvp_arena_1: {
+        id: 'pvp_arena_1',
+        titleAr: "حلبة نزال الفرسان الكونية (1v1)",
+        titleEn: "Cosmic Knight PvP Arena",
+        biome: "space",
+        width: 1400,
+        height: 700,
+        hostSpawn: { x: 180, y: 460 },
+        guestSpawn: { x: 1200, y: 460 },
+        bgGradient: ['#020408', '#0b162c', '#1b0a2a'],
+        platforms: [
+            // Center main battlefield
+            { x: 180, y: 540, w: 1040, h: 60, type: 'solid', style: 'cyber_ground' },
+            // Left tactical dais
+            { x: 100, y: 410, w: 180, h: 24, type: 'solid', style: 'cyber_platform' },
+            // Right tactical dais
+            { x: 1120, y: 410, w: 180, h: 24, type: 'solid', style: 'cyber_platform' },
+            // High center clash platform
+            { x: 520, y: 320, w: 360, h: 24, type: 'solid', style: 'cyber_platform' },
+            // Bouncers
+            { x: 360, y: 420, w: 60, h: 20, type: 'bounce', bounceForce: -17, style: 'cyber_bounce' },
+            { x: 980, y: 420, w: 60, h: 20, type: 'bounce', bounceForce: -17, style: 'cyber_bounce' }
+        ],
+        hazards: [
+            { x: 0, y: 680, w: 1400, h: 60, type: 'laser' },
+            { x: 0, y: 0, w: 20, h: 700, type: 'laser' },
+            { x: 1380, y: 0, w: 20, h: 700, type: 'laser' }
+        ],
+        collectibles: [
+            { x: 700, y: 260, type: 'ultimate_rune' },
+            { x: 480, y: 490, type: 'heart' },
+            { x: 920, y: 490, type: 'heart' }
+        ],
+        enemies: []
+    }
+};
+
 window.GAME_LEVELS = GAME_LEVELS;
+window.PVP_ARENAS = PVP_ARENAS;
+
 

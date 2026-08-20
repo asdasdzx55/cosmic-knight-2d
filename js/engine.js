@@ -317,6 +317,11 @@ class GameEngine {
             p.draw(this.ctx, renderCamX, renderCamY);
         }
 
+        // 8.5. Remote Opponent Player (PvP)
+        if (this.remotePlayer) {
+            this.remotePlayer.draw(this.ctx, renderCamX, renderCamY);
+        }
+
         // 9. Player
         player.draw(this.ctx, renderCamX, renderCamY);
 

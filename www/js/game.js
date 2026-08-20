@@ -28,6 +28,9 @@ class GameManager {
             lang: 'ar'
         };
 
+        // PvP 2-Player Multiplayer State
+        this.isPvP = false;
+
         this.loadSaveData();
 
         // Initialize Engine & Player
@@ -36,6 +39,7 @@ class GameManager {
         this.applyUpgradesAndCustomization();
 
         this.initUI();
+        this.initPvPMultiplayer();
         this.bindEvents();
         this.updateHUD();
         this.renderStagesGrid();
@@ -414,7 +418,7 @@ class GameManager {
 
     // ================= UI & NAVIGATION =================
     showScreen(screenId) {
-        const screens = ['screen-main-menu', 'screen-stages', 'screen-shop', 'screen-how'];
+        const screens = ['screen-main-menu', 'screen-stages', 'screen-pvp-lobby', 'screen-shop', 'screen-how'];
         screens.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -447,7 +451,7 @@ class GameManager {
     }
 
     hideAllModals() {
-        const modals = ['modal-pause', 'modal-victory', 'modal-gameover', 'modal-install-app', 'modal-rewarded-ad'];
+        const modals = ['modal-pause', 'modal-victory', 'modal-gameover', 'modal-install-app', 'modal-rewarded-ad', 'modal-pvp-victory'];
         modals.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.classList.add('hidden');
@@ -542,6 +546,148 @@ class GameManager {
         const coinCount = document.getElementById('hud-coin-count');
         if (coinCount) {
             coinCount.innerText = this.coinsCollectedThisLevel;
+        }
+    }
+
+    // ================= REALTIME 2-PLAYER PVP MULTIPLAYER =================
+    initPvPMultiplayer() {
+        if (!window.multiplayerManager) return;
+        const mp = window.multiplayerManager;
+
+        mp.onOpponentStateCallback = (data) => {
+            if (this.engine && this.engine.remotePlayer) {
+                this.engine.remotePlayer.updateFromNetwork(data);
+            }
+        };
+
+        mp.onOpponentAttackCallback = () => {
+            if (this.engine && this.engine.remotePlayer) {
+                this.engine.remotePlayer.triggerAttack();
+            }
+        };
+
+        mp.onOpponentDamageCallback = (data) => {
+            if (this.player && this.state === 'PLAYING') {
+                this.player.takeDamage(data.amount || 1);
+            }
+        };
+
+        mp.onRoundEndCallback = (isWinnerMe, myScore, oppScore) => {
+            this.handlePvPRoundOver(isWinnerMe, myScore, oppScore);
+        };
+
+        mp.onDisconnectCallback = () => {
+            if (this.isPvP) {
+                this.showToast('⚠️ تم قطع اتصال اللاعب الآخر');
+                this.isPvP = false;
+                this.engine.remotePlayer = null;
+                this.showScreen('screen-pvp-lobby');
+            }
+        };
+    }
+
+    startPvPMatch() {
+        this.isPvP = true;
+        const arena = window.PVP_ARENAS ? window.PVP_ARENAS.pvp_arena_1 : null;
+        if (!arena) return;
+
+        this.applyUpgradesAndCustomization();
+        this.player.maxHp = 3;
+        this.player.hp = 3;
+        this.player.ultimateEnergy = 0;
+        this.player.isDead = false;
+
+        const isHost = window.multiplayerManager.isHost;
+        const spawnPos = isHost ? arena.hostSpawn : arena.guestSpawn;
+        const oppSpawnPos = isHost ? arena.guestSpawn : arena.hostSpawn;
+
+        this.player.x = spawnPos.x;
+        this.player.y = spawnPos.y;
+        this.player.vx = 0;
+        this.player.vy = 0;
+        this.player.facingRight = isHost;
+
+        this.engine.remotePlayer = new RemotePlayer(oppSpawnPos.x, oppSpawnPos.y, window.multiplayerManager.opponentSkin);
+        this.engine.remotePlayer.facingRight = !isHost;
+
+        this.engine.loadLevel(arena, this.player);
+        this.engine.enemies = []; // Pure PvP duel
+
+        // Update PvP HUD
+        const pvpHud = document.getElementById('pvp-hud-bar');
+        if (pvpHud) pvpHud.classList.remove('hidden');
+        const bossHud = document.getElementById('boss-hud-bar');
+        if (bossHud) bossHud.classList.add('hidden');
+
+        this.updatePvPHUD();
+
+        this.showScreen('NONE');
+        this.state = 'PLAYING';
+
+        if (window.soundEngine) {
+            window.soundEngine.playLevelClear();
+        }
+        this.showToast(`⚔️ الجولة ${window.multiplayerManager.currentRound} - قاتل!`);
+    }
+
+    updatePvPHUD() {
+        if (!this.isPvP) return;
+        const mp = window.multiplayerManager;
+
+        // Player 1 (You) Hearts
+        const p1Container = document.getElementById('pvp-p1-hearts');
+        if (p1Container) {
+            p1Container.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const h = document.createElement('i');
+                h.className = 'fa-solid fa-heart ' + (i < this.player.hp ? 'heart-active' : 'heart-empty');
+                p1Container.appendChild(h);
+            }
+        }
+
+        // Player 2 (Opponent) Hearts
+        const p2Container = document.getElementById('pvp-p2-hearts');
+        if (p2Container && this.engine.remotePlayer) {
+            p2Container.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const h = document.createElement('i');
+                h.className = 'fa-solid fa-heart ' + (i < this.engine.remotePlayer.hp ? 'heart-active' : 'heart-empty');
+                p2Container.appendChild(h);
+            }
+        }
+
+        const p1ScoreEl = document.getElementById('pvp-p1-score');
+        if (p1ScoreEl) p1ScoreEl.innerText = mp.myScore;
+
+        const p2ScoreEl = document.getElementById('pvp-p2-score');
+        if (p2ScoreEl) p2ScoreEl.innerText = mp.opponentScore;
+
+        const roundTag = document.getElementById('pvp-round-tag');
+        if (roundTag) roundTag.innerText = 'الجولة ' + mp.currentRound;
+    }
+
+    handlePvPRoundOver(isWinnerMe, myScore, oppScore) {
+        this.state = 'ROUND_OVER';
+        this.updatePvPHUD();
+
+        const mp = window.multiplayerManager;
+        if (myScore >= mp.targetScore || oppScore >= mp.targetScore) {
+            const wonMatch = myScore > oppScore;
+            document.getElementById('pvp-result-title').innerText = wonMatch ? '🎉 أنت الفائز بالنزال الأسطوري!' : '💀 فاز الخصم بالنزال!';
+            document.getElementById('pvp-result-desc').innerText = wonMatch ? 'لقد أسقطت الخصم وتوجت ملك حلبة الأبعاد!' : 'نزال بطولي! يمكنك طلب إعادة النزال والانتقام!';
+            document.getElementById('pvp-final-p1-score').innerText = myScore;
+            document.getElementById('pvp-final-p2-score').innerText = oppScore;
+            this.showModal('modal-pvp-victory');
+            if (window.soundEngine) {
+                if (wonMatch) window.soundEngine.playLevelClear();
+                else window.soundEngine.playGameOver();
+            }
+        } else {
+            mp.currentRound++;
+            this.showToast(isWinnerMe ? '👑 فزت بهذه الجولة!' : '💥 فاز الخصم بهذه الجولة!');
+            setTimeout(() => {
+                if (this.isPvP) this.startPvPMatch();
+            }, 2000);
         }
     }
 
@@ -803,6 +949,70 @@ class GameManager {
         document.getElementById('btn-gameover-stages').onclick = () => { this.hideAllModals(); this.showScreen('screen-stages'); };
         document.getElementById('btn-gameover-menu').onclick = () => { this.hideAllModals(); this.showScreen('screen-main-menu'); };
 
+        // PvP Lobby & Match Buttons
+        const btnPvP = document.getElementById('btn-menu-pvp');
+        if (btnPvP) btnPvP.onclick = () => this.showScreen('screen-pvp-lobby');
+
+        const btnPvPBack = document.getElementById('btn-pvp-back');
+        if (btnPvPBack) btnPvPBack.onclick = () => {
+            this.showScreen('screen-main-menu');
+            if (window.multiplayerManager) window.multiplayerManager.cleanup();
+        };
+
+        const btnCreateRoom = document.getElementById('btn-create-pvp-room');
+        if (btnCreateRoom) {
+            btnCreateRoom.onclick = () => {
+                const codeEl = document.getElementById('host-room-code');
+                const statusEl = document.getElementById('host-status-msg');
+                if (statusEl) statusEl.innerText = '⏳ جاري إنشاء الغرفة...';
+                window.multiplayerManager.createRoom(this.saveData.selectedSkin, (code) => {
+                    if (codeEl) codeEl.innerText = code;
+                    if (statusEl) statusEl.innerText = '✅ جاهز! شارك الرمز ' + code + ' مع صديقك';
+                    const netStatus = document.getElementById('pvp-net-status');
+                    if (netStatus) netStatus.innerText = 'الغرفة: ' + code;
+                });
+            };
+        }
+
+        const btnJoinRoom = document.getElementById('btn-join-pvp-room');
+        if (btnJoinRoom) {
+            btnJoinRoom.onclick = () => {
+                const input = document.getElementById('input-join-code');
+                const statusEl = document.getElementById('join-status-msg');
+                const code = input ? input.value.trim() : '';
+                if (!code || code.length < 4) {
+                    this.showToast('⚠️ يرجى إدخال رمز الغرفة المكون من 4 أرقام');
+                    return;
+                }
+                if (statusEl) statusEl.innerText = '⏳ جاري الاتصال بالغرفة ' + code + '...';
+                window.multiplayerManager.joinRoom(code, this.saveData.selectedSkin, () => {
+                    if (statusEl) statusEl.innerText = '✅ تم الاتصال بنجاح! جاري بدء النزال...';
+                    const netStatus = document.getElementById('pvp-net-status');
+                    if (netStatus) netStatus.innerText = 'متصل: ' + code;
+                }, (err) => {
+                    if (statusEl) statusEl.innerText = '❌ تعذر الاتصال! تأكد من تشغيل الواي فاي والرمز';
+                });
+            };
+        }
+
+        const btnPvPRematch = document.getElementById('btn-pvp-rematch');
+        if (btnPvPRematch) {
+            btnPvPRematch.onclick = () => {
+                window.multiplayerManager.requestRematch();
+                this.showToast('⏳ تم إرسال طلب إعادة النزال...');
+            };
+        }
+
+        const btnPvPMenu = document.getElementById('btn-pvp-menu');
+        if (btnPvPMenu) {
+            btnPvPMenu.onclick = () => {
+                this.isPvP = false;
+                this.engine.remotePlayer = null;
+                if (window.multiplayerManager) window.multiplayerManager.cleanup();
+                this.showScreen('screen-main-menu');
+            };
+        }
+
         // Ultimate Touch Button Direct Click Trigger
         const ultBtn = document.getElementById('btn-ultimate');
         if (ultBtn) {
@@ -894,22 +1104,79 @@ class GameManager {
         if (this.state === 'PLAYING') {
             this.levelTimer += dt;
 
+            // PvP Realtime Synchronization
+            if (this.isPvP && window.multiplayerManager && window.multiplayerManager.isConnected) {
+                // Broadcast local state at 60 FPS
+                window.multiplayerManager.send('PLAYER_STATE', {
+                    x: Math.round(this.player.x),
+                    y: Math.round(this.player.y),
+                    vx: Math.round(this.player.vx),
+                    vy: Math.round(this.player.vy),
+                    facingRight: this.player.facingRight,
+                    state: this.player.state,
+                    hp: this.player.hp,
+                    maxHp: this.player.maxHp,
+                    invulnerableTimer: this.player.invulnerableTimer
+                });
+
+                if (window.inputController.state.attackJustPressed) {
+                    window.multiplayerManager.send('PLAYER_ATTACK');
+                }
+
+                if (window.inputController.state.ultimateJustPressed) {
+                    window.multiplayerManager.send('PLAYER_ULTIMATE');
+                }
+
+                // Update Opponent interpolation
+                if (this.engine.remotePlayer) {
+                    this.engine.remotePlayer.update(dt);
+
+                    // Combat Hitbox Check (Local player attacking remote player)
+                    if (this.player.isAttacking && !this.engine.remotePlayer.isDead && this.engine.remotePlayer.invulnerableTimer <= 0) {
+                        const attackBox = {
+                            x: this.player.facingRight ? this.player.x + this.player.w : this.player.x - 30,
+                            y: this.player.y,
+                            w: 30,
+                            h: this.player.h
+                        };
+                        if (this.player.rectIntersect(attackBox, this.engine.remotePlayer)) {
+                            this.engine.remotePlayer.hp = Math.max(0, this.engine.remotePlayer.hp - 1);
+                            this.engine.remotePlayer.invulnerableTimer = 1.0;
+                            window.multiplayerManager.send('TAKE_DAMAGE', { amount: 1 });
+                            window.particleSystem.emitHitSparks(this.engine.remotePlayer.x + 16, this.engine.remotePlayer.y + 20, '#ff2e63');
+                            if (window.soundEngine) window.soundEngine.playHit();
+                        }
+                    }
+                }
+
+                this.updatePvPHUD();
+            }
+
             // Engine update & render
             this.engine.update(dt, this.player, window.inputController.state);
             this.engine.render(this.player);
 
             // HUD update
-            this.updateHUD();
+            if (!this.isPvP) {
+                this.updateHUD();
+            }
 
             // Check if player died
             if (this.player.isDead && this.state === 'PLAYING') {
-                this.gameOver();
+                if (this.isPvP) {
+                    this.state = 'ROUND_OVER';
+                    const winner = window.multiplayerManager.isHost ? 'guest' : 'host';
+                    window.multiplayerManager.send('ROUND_OVER', { winner });
+                    window.multiplayerManager.opponentScore++;
+                    this.handlePvPRoundOver(false, window.multiplayerManager.myScore, window.multiplayerManager.opponentScore);
+                } else {
+                    this.gameOver();
+                }
             }
 
             // End frame inputs
             window.inputController.endFrame();
-        } else if (this.state === 'PAUSED' || this.state === 'VICTORY' || this.state === 'GAMEOVER' || this.state === 'DIALOGUE') {
-            // Still render live scene in background during cutscenes/dialogues/pause
+        } else if (this.state === 'PAUSED' || this.state === 'VICTORY' || this.state === 'GAMEOVER' || this.state === 'DIALOGUE' || this.state === 'ROUND_OVER') {
             this.engine.render(this.player);
         }
 

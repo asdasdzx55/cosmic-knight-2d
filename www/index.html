@@ -134,6 +134,43 @@
                         <div id="boss-hp-fill" class="boss-bar-fill" style="width: 100%;"></div>
                     </div>
                 </div>
+
+                <!-- PvP 2-Player Heads Up Duel Bar -->
+                <div id="pvp-hud-bar" class="pvp-hud-container hidden">
+                    <!-- Player 1 (You) -->
+                    <div class="pvp-player-col p1-col">
+                        <div class="pvp-player-info">
+                            <span class="pvp-tag p1-tag">أنت (P1)</span>
+                            <div class="pvp-hearts" id="pvp-p1-hearts">
+                                <i class="fa-solid fa-heart heart-active"></i>
+                                <i class="fa-solid fa-heart heart-active"></i>
+                                <i class="fa-solid fa-heart heart-active"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Center Match Score & Round -->
+                    <div class="pvp-center-score">
+                        <span class="pvp-round-tag" id="pvp-round-tag">الجولة 1</span>
+                        <div class="pvp-score-box">
+                            <span id="pvp-p1-score">0</span>
+                            <span class="score-sep">-</span>
+                            <span id="pvp-p2-score">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Player 2 (Opponent) -->
+                    <div class="pvp-player-col p2-col">
+                        <div class="pvp-player-info">
+                            <span class="pvp-tag p2-tag" id="pvp-p2-name">الخصم (P2)</span>
+                            <div class="pvp-hearts" id="pvp-p2-hearts">
+                                <i class="fa-solid fa-heart heart-active"></i>
+                                <i class="fa-solid fa-heart heart-active"></i>
+                                <i class="fa-solid fa-heart heart-active"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- PRO MOBILE VIRTUAL CONTROLS (Console Grade) -->
@@ -259,6 +296,11 @@
                             <span>بدء المغامرة الآن ⚔️</span>
                         </button>
 
+                        <button id="btn-menu-pvp" class="arcade-btn-pvp">
+                            <i class="fa-solid fa-swords"></i>
+                            <span>طور النزال الثنائي (1v1 PvP) 📱⚔️📱</span>
+                        </button>
+
                         <div class="arcade-btn-row">
                             <button id="btn-menu-stages" class="arcade-btn-sub">
                                 <i class="fa-solid fa-map-location-dot"></i>
@@ -313,6 +355,69 @@
                 <!-- Stages Grid (6 Levels) -->
                 <div class="stages-grid" id="stages-container">
                     <!-- Dynamic level cards populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 2.5. PVP MULTIPLAYER LOBBY SCREEN -->
+        <div id="screen-pvp-lobby" class="ui-screen hidden">
+            <div class="stages-glass-card pvp-lobby-frame">
+                <div class="screen-header">
+                    <button id="btn-pvp-back" class="back-btn" aria-label="رجوع">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    <h2 class="screen-title"><i class="fa-solid fa-swords"></i> طور النزال الثنائي (1v1 PvP Wi-Fi)</h2>
+                    <div class="header-coin-badge">
+                        <i class="fa-solid fa-wifi"></i>
+                        <span id="pvp-net-status">جاهز للاتصال</span>
+                    </div>
+                </div>
+
+                <div class="pvp-lobby-grid">
+                    <!-- Left Deck: Host Room -->
+                    <div class="pvp-card-box host-card-box">
+                        <div class="pvp-badge-header">
+                            <i class="fa-solid fa-tower-broadcast pvp-main-icon"></i>
+                            <h3 class="pvp-box-title">إنشاء غرفة نزال (المُضيف)</h3>
+                            <p class="pvp-box-sub">اضغط إنشاء الغرفة وأعطِ الرمز لصديقك على نفس شبكة الواي فاي</p>
+                        </div>
+                        
+                        <div class="room-code-display-box">
+                            <span class="room-code-label">رمز غرفتك:</span>
+                            <div class="room-code-val" id="host-room-code">----</div>
+                        </div>
+
+                        <button id="btn-create-pvp-room" class="glow-btn primary-btn pvp-deck-btn pulse-anim">
+                            <i class="fa-solid fa-plus-circle"></i>
+                            <span>إنشاء غرفة جديدة ⚔️</span>
+                        </button>
+
+                        <div class="pvp-status-pill" id="host-status-msg">
+                            جاهز لتوليد الرمز
+                        </div>
+                    </div>
+
+                    <!-- Right Deck: Join Room -->
+                    <div class="pvp-card-box join-card-box">
+                        <div class="pvp-badge-header">
+                            <i class="fa-solid fa-right-to-bracket pvp-main-icon"></i>
+                            <h3 class="pvp-box-title">انضمام لغرفة (اللاعب 2)</h3>
+                            <p class="pvp-box-sub">أدخل رمز الغرفة المكون من 4 أرقام الذي يظهر على هاتف صديقك</p>
+                        </div>
+
+                        <div class="room-input-container">
+                            <input type="number" id="input-join-code" class="pvp-code-input" placeholder="0000" maxlength="4" min="1000" max="9999" pattern="[0-9]*" inputmode="numeric">
+                        </div>
+
+                        <button id="btn-join-pvp-room" class="glow-btn secondary-btn pvp-deck-btn">
+                            <i class="fa-solid fa-handshake-simple"></i>
+                            <span>انضمام للنزال الآن ⚡</span>
+                        </button>
+
+                        <div class="pvp-status-pill" id="join-status-msg">
+                            أدخل الرمز واضغط انضمام
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -552,6 +657,40 @@
             </div>
         </div>
 
+        <!-- 8.5. PVP DUEL VICTORY / MATCH OVER MODAL -->
+        <div id="modal-pvp-victory" class="ui-modal hidden">
+            <div class="modal-card pvp-result-card">
+                <div class="modal-icon-badge" id="pvp-result-icon">
+                    <i class="fa-solid fa-trophy gold-trophy"></i>
+                </div>
+                <h2 class="modal-title" id="pvp-result-title">🎉 أنت الفائز بالنزال!</h2>
+                <p class="modal-desc" id="pvp-result-desc">لقد أثبتت جدارتك وأسقطت الخصم في ساحة الفرسان الكونية!</p>
+
+                <div class="pvp-score-banner">
+                    <div class="score-player-item p1-item">
+                        <span class="sc-label">أنت (P1)</span>
+                        <span class="sc-num" id="pvp-final-p1-score">2</span>
+                    </div>
+                    <span class="sc-vs">VS</span>
+                    <div class="score-player-item p2-item">
+                        <span class="sc-label">الخصم (P2)</span>
+                        <span class="sc-num" id="pvp-final-p2-score">1</span>
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 14px;">
+                    <button id="btn-pvp-rematch" class="glow-btn primary-btn pulse-anim">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>طلب إعادة النزال (Rematch) ⚔️</span>
+                    </button>
+                    <button id="btn-pvp-menu" class="glow-btn tertiary-btn">
+                        <i class="fa-solid fa-house"></i>
+                        <span>القائمة الرئيسية 🏠</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- 9. STORY DIALOGUE OVERLAY (حوارات القصة والزعماء) -->
         <div id="dialogue-overlay" class="dialogue-overlay hidden">
             <div class="dialogue-box">
@@ -585,6 +724,8 @@
     </div>
 
     <!-- Scripts with Cache Buster v8.0 -->
+    <script src="js/peerjs.min.js"></script>
+    <script src="js/multiplayer.js?v=8.0"></script>
     <script src="js/audio.js?v=8.0"></script>
     <script src="js/particles.js?v=8.0"></script>
     <script src="js/levels.js?v=8.0"></script>

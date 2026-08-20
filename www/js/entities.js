@@ -1390,7 +1390,163 @@ class Collectible {
     }
 }
 
+class RemotePlayer {
+    constructor(x, y, skin = 'shadow') {
+        this.x = x;
+        this.y = y;
+        this.w = 32;
+        this.h = 44;
+        this.vx = 0;
+        this.vy = 0;
+        this.skin = skin;
+        this.facingRight = false;
+        this.state = 'idle';
+        this.animTimer = 0;
+        this.hp = 3;
+        this.maxHp = 3;
+        this.isDead = false;
+        this.invulnerableTimer = 0;
+        this.isAttacking = false;
+        this.attackTimer = 0;
+        this.isDashing = false;
+        this.targetX = x;
+        this.targetY = y;
+        this.lastUpdateTime = performance.now();
+    }
+
+    updateFromNetwork(data) {
+        if (!data) return;
+        this.targetX = data.x;
+        this.targetY = data.y;
+        this.vx = data.vx || 0;
+        this.vy = data.vy || 0;
+        this.facingRight = data.facingRight;
+        this.state = data.state || 'idle';
+        this.hp = data.hp;
+        this.maxHp = data.maxHp || 3;
+        this.invulnerableTimer = data.invulnerableTimer || 0;
+        this.isDead = (this.hp <= 0);
+        this.lastUpdateTime = performance.now();
+    }
+
+    update(dt) {
+        if (this.isDead) return;
+
+        this.animTimer += dt;
+        if (this.invulnerableTimer > 0) this.invulnerableTimer -= dt;
+
+        // Smooth Interpolation towards network position
+        const lerpFactor = Math.min(1, dt * 20);
+        this.x += (this.targetX - this.x) * lerpFactor;
+        this.y += (this.targetY - this.y) * lerpFactor;
+
+        if (this.attackTimer > 0) {
+            this.attackTimer -= dt;
+            if (this.attackTimer <= 0) this.isAttacking = false;
+        }
+    }
+
+    triggerAttack() {
+        this.isAttacking = true;
+        this.attackTimer = 0.22;
+        if (window.soundEngine) window.soundEngine.playAttack();
+    }
+
+    draw(ctx, cameraX, cameraY) {
+        if (this.isDead) return;
+
+        if (this.invulnerableTimer > 0 && Math.floor(this.invulnerableTimer * 20) % 2 === 0) {
+            return;
+        }
+
+        const screenX = Math.round(this.x - cameraX);
+        const screenY = Math.round(this.y - cameraY);
+
+        ctx.save();
+        ctx.translate(screenX + this.w * 0.5, screenY + this.h * 0.5);
+        if (!this.facingRight) ctx.scale(-1, 1);
+
+        const skins = {
+            classic: { armor: '#00b4d8', visor: '#00f5d4', cape: '#ff0054', glow: '#00e5ff' },
+            fire: { armor: '#f77f00', visor: '#fcbf49', cape: '#d62828', glow: '#f77f00' },
+            ninja: { armor: '#212529', visor: '#ff2e63', cape: '#ff2e63', glow: '#ff2e63' },
+            paladin: { armor: '#ffb703', visor: '#ffffff', cape: '#fb8500', glow: '#ffb703' },
+            valkyrie: { armor: '#7209b7', visor: '#4cc9f0', cape: '#f72585', glow: '#4cc9f0' },
+            shadow: { armor: '#10002b', visor: '#c77dff', cape: '#7b2cbf', glow: '#c77dff' }
+        };
+        const palette = skins[this.skin] || skins.shadow;
+
+        const bob = (this.state === 'run') ? Math.sin(this.animTimer * 16) * 3 : 0;
+        const capeSway = (this.state === 'run') ? Math.cos(this.animTimer * 16) * 8 : (this.state === 'jump' ? 12 : 2);
+
+        // Cape
+        ctx.fillStyle = palette.cape;
+        ctx.beginPath();
+        ctx.moveTo(-6, -10 + bob);
+        ctx.lineTo(-18 - capeSway, 14 + bob);
+        ctx.lineTo(-6, 12 + bob);
+        ctx.closePath();
+        ctx.fill();
+
+        // Armor
+        ctx.fillStyle = palette.armor;
+        ctx.beginPath();
+        ctx.roundRect(-10, -12 + bob, 20, 24, 4);
+        ctx.fill();
+
+        // Visor
+        ctx.fillStyle = palette.visor;
+        ctx.shadowColor = palette.glow;
+        ctx.shadowBlur = 10;
+        ctx.fillRect(0, -9 + bob, 9, 5);
+        ctx.shadowBlur = 0;
+
+        // Sword & Attack
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        if (this.isAttacking) {
+            ctx.moveTo(10, 4);
+            ctx.lineTo(28, -6);
+            ctx.stroke();
+
+            // Slash arc
+            ctx.strokeStyle = palette.glow;
+            ctx.lineWidth = 4;
+            ctx.shadowColor = palette.glow;
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.arc(8, 0, 24, -Math.PI * 0.4, Math.PI * 0.4);
+            ctx.stroke();
+        } else {
+            ctx.moveTo(6, 6 + bob);
+            ctx.lineTo(16, -10 + bob);
+            ctx.stroke();
+        }
+
+        ctx.restore();
+
+        // Name & Mini HP Bar above head
+        ctx.save();
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillStyle = '#ff2e63';
+        ctx.textAlign = 'center';
+        ctx.fillText('الخصم ⚔️', screenX + this.w * 0.5, screenY - 14);
+
+        const barW = 30;
+        const barH = 4;
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(screenX + (this.w - barW) * 0.5, screenY - 10, barW, barH);
+        const hpPct = Math.max(0, this.hp / this.maxHp);
+        ctx.fillStyle = '#ff2e63';
+        ctx.fillRect(screenX + (this.w - barW) * 0.5, screenY - 10, barW * hpPct, barH);
+        ctx.restore();
+    }
+}
+
 window.Player = Player;
+window.RemotePlayer = RemotePlayer;
 window.Enemy = Enemy;
 window.Projectile = Projectile;
 window.Collectible = Collectible;
+
