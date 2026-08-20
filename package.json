@@ -12,7 +12,8 @@
     "@capacitor-community/admob": "^6.0.0",
     "@capacitor/android": "^7.0.0",
     "@capacitor/cli": "^7.0.0",
-    "@capacitor/core": "^7.0.0"
+    "@capacitor/core": "^7.0.0",
+    "ws": "^8.21.3"
   },
   "repository": {
     "type": "git",

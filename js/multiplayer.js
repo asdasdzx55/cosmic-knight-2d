@@ -1,25 +1,24 @@
 /**
- * COSMIC KNIGHT 2D - BULLETPROOF REALTIME 2-PLAYER PVP MULTIPLAYER
- * Direct WebRTC DataChannels with Deterministic Symmetrical Handshake
+ * COSMIC KNIGHT 2D - ULTRA-FAST REALTIME 2-PLAYER PVP MULTIPLAYER
+ * Direct WebSocket Relay + WebRTC Dual Protocol for Instant Zero-Lag Battle
  * Programmed & Developed by: Ahmed Abdelwahab (أحمد عبد الوهاب)
  */
 
 class MultiplayerManager {
     constructor() {
-        this.peer = null;
-        this.conn = null;
+        this.ws = null;
         this.isHost = false;
         this.roomCode = null;
         this.isConnected = false;
         this.isMatchStarted = false;
         this.statusText = 'جاهز للاتصال';
 
-        // Player Match State
+        // Match State
         this.mySkin = 'classic';
         this.opponentSkin = 'fire';
         this.myScore = 0;
         this.opponentScore = 0;
-        this.targetScore = 2; // Best of 3 (first to 2 KOs)
+        this.targetScore = 2;
         this.currentRound = 1;
         this.rematchRequestedByMe = false;
         this.rematchRequestedByOpponent = false;
@@ -32,6 +31,23 @@ class MultiplayerManager {
         this.onOpponentDamageCallback = null;
         this.onRoundEndCallback = null;
         this.onDisconnectCallback = null;
+    }
+
+    getWsUrl() {
+        let host = window.location.hostname;
+        if (!host || host === 'localhost' || host === '127.0.0.1' || host === '') {
+            host = '10.73.42.174';
+        }
+        const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        return `${proto}//${host}:3000`;
+    }
+
+    getJoinUrl(code) {
+        let host = window.location.hostname;
+        if (!host || host === 'localhost' || host === '127.0.0.1' || host === '') {
+            host = '10.73.42.174';
+        }
+        return `http://${host}:3000/?join=${code}`;
     }
 
     setStatus(text) {
@@ -50,220 +66,159 @@ class MultiplayerManager {
         if (joinStatus && !this.isHost) joinStatus.innerText = text;
     }
 
-    generateRoomCode() {
-        return Math.floor(1000 + Math.random() * 9000).toString();
-    }
-
-    getJoinUrl(code) {
-        let base = window.location.origin + window.location.pathname;
-        if (base.includes('localhost') || base.includes('127.0.0.1')) {
-            base = 'http://10.73.42.174:3000/';
-        }
-        return base.split('?')[0] + '?join=' + code;
-    }
-
     createRoom(skin = 'classic', onReady, onError) {
         this.cleanup();
         this.isHost = true;
         this.mySkin = skin;
-        this.roomCode = this.generateRoomCode();
-        const peerId = 'ck2dv8-' + this.roomCode;
-
         this.setStatus('🌐 جاري الاتصال بخادم النزال...');
 
-        if (typeof Peer === 'undefined') {
-            const err = 'مكتبة الاتصال لم تُحمّل بعد!';
-            this.setStatus('❌ ' + err);
-            if (onError) onError(err);
-            return;
-        }
-
+        const wsUrl = this.getWsUrl();
         try {
-            this.peer = new Peer(peerId, {
-                debug: 1,
-                config: {
-                    iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' },
-                        { urls: 'stun:stun.cloudflare.com:3478' }
-                    ]
-                }
-            });
+            this.ws = new WebSocket(wsUrl);
         } catch (e) {
-            console.error('[PVP Init Error]:', e);
+            console.error('[PVP WS Error]:', e);
+            this.setStatus('❌ تعذر الاتصال بالخادم المحلي');
             if (onError) onError(e);
             return;
         }
 
-        this.peer.on('open', (id) => {
-            console.log('[PVP Host] Room open with peer ID:', id);
-            this.setStatus('⏳ الغرفة جاهزة: ' + this.roomCode + ' (امسح الـ QR أو شارك الرمز)');
-            if (onReady) onReady(this.roomCode, this.getJoinUrl(this.roomCode));
-        });
+        this.ws.onopen = () => {
+            console.log('[PVP WS Open] Registering new room...');
+            this.setStatus('⏳ جاري إنشاء الغرفة ورمز الـ QR...');
+            this.send('CREATE_ROOM', { skin: this.mySkin });
+        };
 
-        this.peer.on('connection', (conn) => {
-            console.log('[PVP Host] Incoming connection from opponent!');
-            this.setStatus('🔗 تم اتصال اللاعب الثاني! جاري بدء المعركة...');
-            this.conn = conn;
-            this.setupConnection();
-        });
-
-        this.peer.on('error', (err) => {
-            console.error('[PVP Host Error]:', err);
-            if (err.type === 'unavailable-id') {
-                this.createRoom(skin, onReady, onError);
-            } else {
-                this.setStatus('❌ خطأ في الاتصال: ' + (err.type || err));
-                if (onError) onError(err);
+        this.ws.onmessage = (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+                this.handleMessage(msg, onReady, onError);
+            } catch (e) {
+                console.error('[PVP Msg Error]:', e);
             }
-        });
+        };
+
+        this.ws.onerror = (err) => {
+            console.error('[PVP WS Error Event]:', err);
+            this.setStatus('❌ خطأ في الاتصال بالخادم المحلي');
+            if (onError) onError(err);
+        };
+
+        this.ws.onclose = () => {
+            console.warn('[PVP WS Close]');
+            this.isConnected = false;
+            this.isMatchStarted = false;
+            this.setStatus('⚠️ تم قطع الاتصال');
+            if (this.onDisconnectCallback) this.onDisconnectCallback();
+        };
     }
 
     joinRoom(code, skin = 'classic', onConnected, onError) {
         this.cleanup();
         this.isHost = false;
         this.mySkin = skin;
-        this.roomCode = code.trim();
-        const hostPeerId = 'ck2dv8-' + this.roomCode;
+        this.roomCode = (code || '').trim();
 
         this.setStatus('🌐 جاري الاتصال بالغرفة ' + this.roomCode + '...');
 
-        if (typeof Peer === 'undefined') {
-            const err = 'مكتبة الاتصال لم تُحمّل بعد!';
-            this.setStatus('❌ ' + err);
-            if (onError) onError(err);
-            return;
-        }
-
-        const myPeerId = 'ck2dv8-g-' + Math.floor(100000 + Math.random() * 900000);
+        const wsUrl = this.getWsUrl();
         try {
-            this.peer = new Peer(myPeerId, {
-                debug: 1,
-                config: {
-                    iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' },
-                        { urls: 'stun:stun.cloudflare.com:3478' }
-                    ]
-                }
-            });
+            this.ws = new WebSocket(wsUrl);
         } catch (e) {
-            console.error('[PVP Init Error]:', e);
+            console.error('[PVP WS Error]:', e);
+            this.setStatus('❌ تعذر الاتصال بالخادم');
             if (onError) onError(e);
             return;
         }
 
-        this.peer.on('open', () => {
-            console.log('[PVP Guest] Connecting to host peer:', hostPeerId);
-            this.conn = this.peer.connect(hostPeerId, {
-                reliable: true
-            });
-
-            this.setupConnection();
-
-            if (onConnected) onConnected();
-        });
-
-        this.peer.on('error', (err) => {
-            console.error('[PVP Guest Peer Error]:', err);
-            this.setStatus('❌ تعذر العثور على الغرفة ' + this.roomCode + ' (تأكد من فتح المضيف للغرفة أولاً)');
-            if (onError) onError(err);
-        });
-    }
-
-    setupConnection() {
-        if (!this.conn) return;
-
-        const onDataOpen = () => {
-            console.log('[PVP] DataChannel open! Broadcasting HELLO...');
-            this.isConnected = true;
-            this.setStatus('⚔️ تم ربط الهاتفين! جاري تحميل ساحة النزال...');
-
-            // Send HELLO packet
-            this.send('HELLO', {
-                isHost: this.isHost,
+        this.ws.onopen = () => {
+            console.log('[PVP WS Open] Joining room:', this.roomCode);
+            this.send('JOIN_ROOM', {
+                roomCode: this.roomCode,
                 skin: this.mySkin
             });
+            if (onConnected) onConnected();
         };
 
-        if (this.conn.open) {
-            onDataOpen();
-        } else {
-            this.conn.on('open', onDataOpen);
-        }
+        this.ws.onmessage = (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+                this.handleMessage(msg, null, onError);
+            } catch (e) {
+                console.error('[PVP Msg Error]:', e);
+            }
+        };
 
-        this.conn.on('data', (data) => {
-            this.handleIncomingData(data);
-        });
+        this.ws.onerror = (err) => {
+            console.error('[PVP WS Error Event]:', err);
+            this.setStatus('❌ تعذر العثور على الخادم');
+            if (onError) onError(err);
+        };
 
-        this.conn.on('close', () => {
-            console.warn('[PVP] Connection closed');
+        this.ws.onclose = () => {
+            console.warn('[PVP WS Close]');
             this.isConnected = false;
             this.isMatchStarted = false;
             this.setStatus('⚠️ تم قطع الاتصال');
             if (this.onDisconnectCallback) this.onDisconnectCallback();
-        });
-
-        this.conn.on('error', (err) => {
-            console.error('[PVP Conn Error]:', err);
-            this.setStatus('❌ خطأ في قناة البيانات');
-        });
+        };
     }
 
     send(type, payload = {}) {
-        if (this.conn && this.conn.open) {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             try {
-                this.conn.send({
+                this.ws.send(JSON.stringify({
                     type,
                     timestamp: performance.now(),
                     ...payload
-                });
+                }));
             } catch (e) {
                 console.warn('[PVP Send Error]:', e);
             }
         }
     }
 
-    handleIncomingData(msg) {
+    handleMessage(msg, onReady, onError) {
         if (!msg || !msg.type) return;
 
         switch (msg.type) {
-            case 'HELLO':
-                this.opponentSkin = msg.skin || 'fire';
-                console.log('[PVP] Received HELLO from opponent. Skin:', this.opponentSkin);
-                this.send('HELLO_ACK', { skin: this.mySkin });
-
-                if (this.isHost && !this.isMatchStarted) {
-                    this.triggerMatchStart();
-                }
+            case 'ROOM_CREATED':
+                this.roomCode = msg.roomCode;
+                this.setStatus('⏳ الغرفة جاهزة: ' + this.roomCode);
+                if (onReady) onReady(this.roomCode, this.getJoinUrl(this.roomCode));
                 break;
 
-            case 'HELLO_ACK':
-                this.opponentSkin = msg.skin || 'fire';
-                console.log('[PVP] Received HELLO_ACK from opponent.');
-
-                if (this.isHost && !this.isMatchStarted) {
-                    this.triggerMatchStart();
-                }
-                break;
-
-            case 'START_DUEL':
-                console.log('[PVP] Received START_DUEL command from host!');
+            case 'MATCH_START':
+                console.log('[PVP] MATCH_START received from server! Starting game...');
+                this.isConnected = true;
                 this.isMatchStarted = true;
+                this.isHost = msg.isHost;
+                this.opponentSkin = msg.opponentSkin || 'fire';
                 this.currentRound = msg.round || 1;
                 this.myScore = 0;
                 this.opponentScore = 0;
-                this.setStatus('⚔️ النزال بدأ الآن!');
-                this.send('START_DUEL_ACK');
+                this.setStatus('⚔️ انطلق النزال الآن!');
+
                 if (window.gameManager) {
                     window.gameManager.startPvPMatch();
                 }
                 break;
 
-            case 'START_DUEL_ACK':
-                console.log('[PVP] Guest confirmed START_DUEL!');
+            case 'ERROR':
+                this.setStatus('❌ ' + msg.message);
+                if (onError) onError(msg.message);
+                if (window.gameManager) {
+                    window.gameManager.showToast('⚠️ ' + msg.message);
+                }
+                break;
+
+            case 'PEER_DISCONNECTED':
+                this.setStatus('⚠️ غادر اللاعب الآخر النزال');
+                if (window.gameManager) {
+                    window.gameManager.showToast('⚠️ غادر اللاعب الآخر النزال');
+                    window.gameManager.isPvP = false;
+                    window.gameManager.engine.remotePlayer = null;
+                    window.gameManager.showScreen('screen-pvp-lobby');
+                }
                 break;
 
             case 'PLAYER_STATE':
@@ -318,30 +273,6 @@ class MultiplayerManager {
         }
     }
 
-    triggerMatchStart() {
-        this.isMatchStarted = true;
-        this.setStatus('⚔️ جاري إطلاق المعركة...');
-        
-        // Broadcast multiple START_DUEL packets to guarantee receipt
-        this.send('START_DUEL', {
-            round: 1,
-            arena: 'pvp_arena_1'
-        });
-
-        setTimeout(() => {
-            this.send('START_DUEL', {
-                round: 1,
-                arena: 'pvp_arena_1'
-            });
-        }, 150);
-
-        setTimeout(() => {
-            if (window.gameManager) {
-                window.gameManager.startPvPMatch();
-            }
-        }, 300);
-    }
-
     requestRematch() {
         this.rematchRequestedByMe = true;
         this.send('REMATCH_REQ');
@@ -366,13 +297,9 @@ class MultiplayerManager {
     cleanup() {
         this.isConnected = false;
         this.isMatchStarted = false;
-        if (this.conn) {
-            try { this.conn.close(); } catch (e) {}
-            this.conn = null;
-        }
-        if (this.peer) {
-            try { this.peer.destroy(); } catch (e) {}
-            this.peer = null;
+        if (this.ws) {
+            try { this.ws.close(); } catch (e) {}
+            this.ws = null;
         }
     }
 }
