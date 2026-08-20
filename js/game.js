@@ -133,6 +133,14 @@ class GameManager {
         this.applyUpgradesAndCustomization();
         this.engine.loadLevel(levelData, this.player);
 
+        this.isPvP = false;
+        const pvpHud = document.getElementById('pvp-hud-bar');
+        if (pvpHud) pvpHud.classList.add('hidden');
+        const hudTopLeft = document.querySelector('.hud-top-left');
+        if (hudTopLeft) hudTopLeft.style.visibility = 'visible';
+        const hudTopCenter = document.querySelector('.hud-top-center');
+        if (hudTopCenter) hudTopCenter.style.visibility = 'visible';
+
         // Update HUD
         const hudStageName = document.getElementById('hud-stage-name');
         if (hudStageName) {
@@ -613,11 +621,16 @@ class GameManager {
         this.engine.loadLevel(arena, this.player);
         this.engine.enemies = []; // Pure PvP duel
 
-        // Update PvP HUD
+        // Hide Single-Player HUD & Show PvP HUD
         const pvpHud = document.getElementById('pvp-hud-bar');
         if (pvpHud) pvpHud.classList.remove('hidden');
         const bossHud = document.getElementById('boss-hud-bar');
         if (bossHud) bossHud.classList.add('hidden');
+
+        const hudTopLeft = document.querySelector('.hud-top-left');
+        if (hudTopLeft) hudTopLeft.style.visibility = 'hidden';
+        const hudTopCenter = document.querySelector('.hud-top-center');
+        if (hudTopCenter) hudTopCenter.style.visibility = 'hidden';
 
         this.updatePvPHUD();
 
