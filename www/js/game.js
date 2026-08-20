@@ -248,22 +248,35 @@ class GameManager {
         // 1. Check Native Android Capacitor AdMob
         if (window.Capacitor && window.Capacitor.isNativePlatform() && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
             try {
+                this.showToast('⏳ جاري تحميل إعلان الفيديو بمكافأة...');
                 const AdMob = window.Capacitor.Plugins.AdMob;
                 await AdMob.initialize({ requestTrackingAuthorization: true });
-                
-                await AdMob.prepareRewardVideoAd({
-                    adId: 'ca-app-pub-1911478411926834/9250741384', // Real Google AdMob Rewarded Unit ID
-                    isTesting: false
+
+                let rewardClaimed = false;
+                const onReward = () => {
+                    if (!rewardClaimed) {
+                        rewardClaimed = true;
+                        this.claimAdReviveReward();
+                    }
+                };
+
+                AdMob.addListener('onRewardedVideoAdReward', onReward);
+                AdMob.addListener('rewarded', onReward);
+                AdMob.addListener('onRewardedVideoAdDismissed', () => {
+                    if (!rewardClaimed) {
+                        this.showModal('modal-gameover');
+                    }
                 });
 
-                AdMob.addListener('onRewardedVideoAdReward', () => {
-                    this.claimAdReviveReward();
+                await AdMob.prepareRewardVideoAd({
+                    adId: 'ca-app-pub-1911478411926834/9250741384',
+                    isTesting: false
                 });
 
                 await AdMob.showRewardVideoAd();
                 return;
             } catch (err) {
-                console.warn('[AdMob Native Notice, opening interactive fallback]:', err);
+                console.warn('[AdMob Notice, opening interactive fallback]:', err);
             }
         }
 
