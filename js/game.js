@@ -252,8 +252,8 @@ class GameManager {
                 await AdMob.initialize({ requestTrackingAuthorization: true });
                 
                 await AdMob.prepareRewardVideoAd({
-                    adId: 'ca-app-pub-3940256099942544/5224354917', // Google Official AdMob Test Unit
-                    isTesting: true
+                    adId: 'ca-app-pub-1911478411926834/9250741384', // Real Google AdMob Rewarded Unit ID
+                    isTesting: false
                 });
 
                 AdMob.addListener('onRewardedVideoAdReward', () => {
@@ -263,11 +263,11 @@ class GameManager {
                 await AdMob.showRewardVideoAd();
                 return;
             } catch (err) {
-                console.warn('[AdMob Native Error, falling back to interactive modal]:', err);
+                console.warn('[AdMob Native Notice, opening interactive fallback]:', err);
             }
         }
 
-        // 2. Web fallback interactive modal
+        // 2. Web & Test Interactive Modal
         const adModal = document.getElementById('modal-rewarded-ad');
         if (adModal) adModal.classList.remove('hidden');
 
@@ -321,19 +321,46 @@ class GameManager {
 
     claimAdReviveReward() {
         if (this.adInterval) clearInterval(this.adInterval);
+        this.adInterval = null;
         this.hideAllModals();
 
-        // Revive Player on the spot!
-        this.player.hp = this.player.maxHp;
-        this.player.isDead = false;
-        this.player.invulnerableTimer = 4.0; // 4 seconds golden invulnerability shield
+        if (this.player) {
+            // Restore full health and reset dead flags
+            this.player.isDead = false;
+            this.player.hp = this.player.maxHp;
+            this.player.vx = 0;
+            this.player.vy = 0;
+            this.player.isAttacking = false;
+            this.player.isDashing = false;
+            this.player.invulnerableTimer = 5.0; // 5 seconds golden invulnerability shield
+
+            // If player fell into pit or void, safely return to stage spawn position
+            const lvlHeight = (this.engine && this.engine.currentLevel && this.engine.currentLevel.height) || 540;
+            const spawnX = (this.engine && this.engine.currentLevel && this.engine.currentLevel.spawnX) || 60;
+            const spawnY = (this.engine && this.engine.currentLevel && this.engine.currentLevel.spawnY) || 360;
+
+            if (this.player.y >= lvlHeight - 60) {
+                this.player.x = spawnX;
+                this.player.y = spawnY;
+            } else {
+                this.player.y = Math.max(30, this.player.y - 35);
+            }
+        }
+
+        // Update HUD
+        this.updateHUDHearts();
+
+        // Resume game state and animation timer
+        this.lastTime = performance.now();
         this.state = 'PLAYING';
 
         const touchLayer = document.getElementById('touch-controls');
         if (touchLayer) touchLayer.style.display = 'flex';
 
-        window.soundEngine.playDash();
-        window.particleSystem.emitGemBurst(this.player.x + this.player.w * 0.5, this.player.y + this.player.h * 0.5, '#00f59b');
+        if (window.soundEngine) window.soundEngine.playDash();
+        if (window.particleSystem && this.player) {
+            window.particleSystem.emitGemBurst(this.player.x + this.player.w * 0.5, this.player.y + this.player.h * 0.5, '#00f59b');
+        }
         this.showToast('💖 تم إحياء الفارس واستعادة كامل القلوب مع درع ذهبي مؤقت!');
     }
 
