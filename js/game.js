@@ -28,9 +28,6 @@ class GameManager {
             lang: 'ar'
         };
 
-        // PvP 2-Player Multiplayer State
-        this.isPvP = false;
-
         this.loadSaveData();
 
         // Initialize Engine & Player
@@ -39,7 +36,6 @@ class GameManager {
         this.applyUpgradesAndCustomization();
 
         this.initUI();
-        this.initPvPMultiplayer();
         this.bindEvents();
         this.updateHUD();
         this.renderStagesGrid();
@@ -51,8 +47,11 @@ class GameManager {
     }
 
     initUI() {
+        if (window.dialogueManager) window.dialogueManager.init();
+        this.showScreen('screen-main-menu');
         this.updateDifficultyUI();
         this.updateMenuStats();
+        this.updateMenuHeroPreview();
     }
 
     setDifficulty(diff) {
@@ -907,12 +906,6 @@ class GameManager {
             canvas.style.width = screenW + 'px';
             canvas.style.height = (screenW / aspect) + 'px';
         }
-    }
-
-    initUI() {
-        if (window.dialogueManager) window.dialogueManager.init();
-        this.showScreen('screen-main-menu');
-        this.updateMenuHeroPreview();
     }
 
     // ================= MAIN 60 FPS GAME LOOP =================

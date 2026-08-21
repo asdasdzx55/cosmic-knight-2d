@@ -178,10 +178,25 @@ function handleMessage(ws, msg) {
     }
 }
 
+const os = require('os');
+
+function getLocalIp() {
+    const interfaces = os.networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+        for (const iface of interfaces[name]) {
+            if (iface.family === 'IPv4' && !iface.internal && !iface.address.startsWith('169.254')) {
+                return iface.address;
+            }
+        }
+    }
+    return 'localhost';
+}
+
 server.listen(PORT, '0.0.0.0', () => {
+    const localIp = getLocalIp();
     console.log(`=======================================================`);
     console.log(`🚀 Cosmic Knight 2D Game Server running on port ${PORT}`);
-    console.log(`🌐 Local Wi-Fi Access: http://10.73.42.174:${PORT}`);
-    console.log(`⚡ WebSocket Instant Multiplayer Relay: ACTIVE`);
+    console.log(`🌐 Local Wi-Fi Access: http://${localIp}:${PORT}`);
+    console.log(`⚡ Direct HTTP Game Streaming: ACTIVE`);
     console.log(`=======================================================`);
 });
